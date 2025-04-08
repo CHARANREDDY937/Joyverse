@@ -1,0 +1,183 @@
+@import url('https://fonts.googleapis.com/css2?family=Bubblegum+Sans&display=swap');
+
+.child-login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  overflow: hidden;
+  transition: background-image 0.5s ease-in-out;
+}
+
+/* Login background */
+.child-login-container[data-state="login"] {
+  background-image: url('https://i.pinimg.com/736x/6e/7f/f5/6e7ff540b556939aa953b02748c02d47.jpg');
+}
+
+/* Signup background */
+.child-login-container[data-state="signup"] {
+  background-image: url('https://i.pinimg.com/736x/94/e3/1e/94e31ec6696f8223b660406dd4ed8ffe.jpg');
+}
+
+.child-login-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  
+  z-index: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.login-box {
+ 
+  border-radius: 30px;
+  padding: 3rem;
+  width: 100%;
+  max-width: 500px;
+ 
+  position: relative;
+  z-index: 1;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.welcome-emoji {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 1rem;
+  animation: bounce 2s infinite;
+}
+
+.login-header h1 {
+  font-family: 'Bubblegum Sans', cursive;
+  font-size: 2.8rem;
+  color: #FF6B9B;
+  margin: 0;
+  background: linear-gradient(45deg, #FF6B9B, #FF8FB3);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-family: 'Bubblegum Sans', cursive;
+  font-size: 1.4rem;
+  color: #444;
+}
+
+.form-group input {
+  padding: 1rem;
+  border: 3px solid #FF8FB3;
+  border-radius: 15px;
+  font-size: 1.2rem;
+  font-family: 'Bubblegum Sans', cursive;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+  border-color: #FF6B9B;
+  box-shadow: 0 0 0 3px rgba(255, 107, 155, 0.2);
+}
+
+.submit-button {
+  background: linear-gradient(45deg, #FF6B9B, #FF8FB3);
+  color: white;
+  border: none;
+  border-radius: 15px;
+  padding: 1rem;
+  font-size: 1.4rem;
+  font-family: 'Bubblegum Sans', cursive;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: all 0.3s ease;
+}
+
+.submit-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 107, 155, 0.3);
+}
+
+.toggle-form {
+  text-align: center;
+  margin-top: 2rem;
+  font-family: 'Bubblegum Sans', cursive;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.toggle-button {
+  background: none;
+  border: none;
+  color: #FF6B9B;
+  font-family: 'Bubblegum Sans', cursive;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  margin-left: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.toggle-button:hover {
+  color: #FF8FB3;
+  text-decoration: underline;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@media (max-width: 480px) {
+  .login-box {
+    padding: 2rem;
+  }
+
+  .welcome-emoji {
+    font-size: 3.5rem;
+  }
+
+  .login-header h1 {
+    font-size: 2.4rem;
+  }
+
+  .form-group label {
+    font-size: 1.2rem;
+  }
+
+  .form-group input {
+    font-size: 1rem;
+    padding: 0.8rem;
+  }
+
+  .submit-button {
+    font-size: 1.2rem;
+    padding: 0.8rem;
+  }
+} 

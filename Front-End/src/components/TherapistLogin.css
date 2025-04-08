@@ -1,0 +1,236 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+.therapist-login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.5s ease-in-out;
+}
+
+/* Login background */
+.therapist-login-container[data-state="login"] {
+  background-image: 
+    url('https://i.pinimg.com/736x/65/de/da/65deda34aa0f7bfe0c304e6e86fb9126.jpg');
+  background-blend-mode: overlay;
+}
+
+/* Signup background */
+.therapist-login-container[data-state="signup"] {
+  background-image: 
+    url('https://i.pinimg.com/736x/33/04/2b/33042b02787f36595864e1c25940af55.jpg');
+  background-blend-mode: overlay;
+}
+
+.therapist-login-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.therapist-login-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.therapist-login-box {
+  
+  border-radius: 20px;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 400px;
+
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.therapist-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.header-icon {
+  font-size: 3rem;
+  margin-bottom: 0.8rem;
+  display: inline-block;
+  padding: 0.8rem;
+  background: linear-gradient(135deg, #5B9DFF, #8BB5FF);
+  border-radius: 50%;
+  color: white;
+  box-shadow: 
+    0 4px 15px rgba(91, 157, 255, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 2;
+}
+
+.header-icon::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(91, 157, 255, 0.2), rgba(139, 181, 255, 0.2));
+  z-index: -1;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.2;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+}
+
+.therapist-header h1 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 2.2rem;
+  font-weight: 600;
+  color: #2D3748;
+  margin: 0 0 0.4rem 0;
+}
+
+.subtitle {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.95rem;
+  color: #718096;
+  margin: 0;
+}
+
+.therapist-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.form-group label {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #4A5568;
+}
+
+.form-group input {
+  padding: 0.7rem 1rem;
+  border: 2px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: 'Poppins', sans-serif;
+  outline: none;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.form-group input:focus {
+  border-color: #5B9DFF;
+  box-shadow: 0 0 0 3px rgba(91, 157, 255, 0.1);
+}
+
+.form-group select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234A5568' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1.2rem;
+}
+
+.submit-button {
+  background: linear-gradient(135deg, #5B9DFF, #8BB5FF);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.9rem;
+  font-size: 0.95rem;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.submit-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(91, 157, 255, 0.3);
+}
+
+.toggle-form {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.85rem;
+  color: #718096;
+}
+
+.toggle-button {
+  background: none;
+  border: none;
+  color: #5B9DFF;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  margin-left: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.toggle-button:hover {
+  color: #8BB5FF;
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .therapist-login-box {
+    padding: 2rem;
+  }
+
+  .header-icon {
+    font-size: 3rem;
+  }
+
+  .therapist-header h1 {
+    font-size: 2rem;
+  }
+
+  .form-group input,
+  .form-group select {
+    font-size: 0.9rem;
+    padding: 0.7rem 0.9rem;
+  }
+} 
