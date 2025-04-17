@@ -1,10 +1,13 @@
+// joyverse/src/components/TherapistLogin.js
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useChildContext } from '../context/ChildContext'; // Corrected import path
 import './TherapistLogin.css';
 
 const TherapistLogin = () => {
   const navigate = useNavigate();
+  const { setChildData } = useChildContext(); // Get the setter function from context
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     email: '',
@@ -15,8 +18,13 @@ const TherapistLogin = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Here you would typically handle authentication
-    navigate('/therapist/dashboard');
+    // Set child's data in context
+    setChildData({
+      fullName: formData.fullName,
+      email: formData.email,
+    });
+    // Navigate to the child's info page
+    navigate('/child-info'); // Replace with the actual path for the child's info page
   };
 
   const handleChange = (e) => {
@@ -50,6 +58,7 @@ const TherapistLogin = () => {
         </motion.div>
 
         <form onSubmit={handleSubmit} className="therapist-form">
+          {/* Full Name input for signup */}
           {!isLogin && (
             <motion.div 
               className="form-group"
@@ -70,6 +79,7 @@ const TherapistLogin = () => {
             </motion.div>
           )}
 
+          {/* Email input */}
           <motion.div 
             className="form-group"
             initial={{ opacity: 0, x: -20 }}
@@ -88,6 +98,7 @@ const TherapistLogin = () => {
             />
           </motion.div>
 
+          {/* Password input */}
           <motion.div 
             className="form-group"
             initial={{ opacity: 0, x: -20 }}
@@ -106,6 +117,7 @@ const TherapistLogin = () => {
             />
           </motion.div>
 
+          {/* Confirm Password input for signup */}
           {!isLogin && (
             <motion.div 
               className="form-group"
@@ -126,6 +138,7 @@ const TherapistLogin = () => {
             </motion.div>
           )}
 
+          {/* Submit button */}
           <motion.button
             type="submit"
             className="submit-button"
@@ -136,6 +149,7 @@ const TherapistLogin = () => {
           </motion.button>
         </form>
 
+        {/* Toggle between login and signup */}
         <motion.div 
           className="toggle-form"
           initial={{ opacity: 0 }}
@@ -157,4 +171,4 @@ const TherapistLogin = () => {
   );
 };
 
-export default TherapistLogin; 
+export default TherapistLogin;

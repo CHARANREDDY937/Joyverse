@@ -1,109 +1,143 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import './MemoryMatch.css';
 
-const emojis = ['🐶', '🐱', '🐰', '🐼', '🦊', '🦁', '🐯', '🐮'];
-const cardVariants = {
-  hidden: { rotateY: 180 },
-  visible: { rotateY: 0 },
-};
+const CARD_PAIRS = [
+  { id: 1, emoji: '🐘', name: 'elephant' },
+  { id: 2, emoji: '🦒', name: 'giraffe' },
+  { id: 3, emoji: '🦁', name: 'lion' },
+  { id: 4, emoji: '🐯', name: 'tiger' },
+  { id: 5, emoji: '🐼', name: 'panda' },
+  { id: 6, emoji: '🦊', name: 'fox' },
+  { id: 7, emoji: '🐨', name: 'koala' },
+  { id: 8, emoji: '🦘', name: 'kangaroo' }
+];
 
 const MemoryMatch = () => {
+  const navigate = useNavigate();
   const [cards, setCards] = useState([]);
-  const [flippedIndices, setFlippedIndices] = useState([]);
+  const [flippedCards, setFlippedCards] = useState([]);
   const [matchedPairs, setMatchedPairs] = useState([]);
   const [moves, setMoves] = useState(0);
-  const [gameComplete, setGameComplete] = useState(false);
+  const [score, setScore] = useState(0);
 
+  // Initialize game
   useEffect(() => {
     initializeGame();
   }, []);
 
   const initializeGame = () => {
-    // Create pairs of emojis and shuffle them
-    const emojiPairs = [...emojis, ...emojis];
-    const shuffledEmojis = emojiPairs.sort(() => Math.random() - 0.5);
-    setCards(shuffledEmojis);
-    setFlippedIndices([]);
+    // Create pairs of cards and shuffle them
+    const shuffledCards = [...CARD_PAIRS, ...CARD_PAIRS]
+      .sort(() => Math.random() - 0.5)
+      .map((card, index) => ({
+        ...card,
+        uniqueId: `${card.id}-${index}`
+      }));
+    
+    setCards(shuffledCards);
+    setFlippedCards([]);
     setMatchedPairs([]);
     setMoves(0);
-    setGameComplete(false);
+    setScore(0);
   };
 
-  const handleCardClick = (index) => {
-    // Prevent clicking if two cards are already flipped or same card is clicked
-    if (flippedIndices.length === 2 || flippedIndices.includes(index) || matchedPairs.includes(index)) {
-      return;
-    }
+  const handleCardClick = (clickedCard) => {
+    // Prevent clicking if two cards are already flipped
+    if (flippedCards.length === 2) return;
+    
+    // Prevent clicking on already matched or flipped cards
+    if (matchedPairs.includes(clickedCard.id) || 
+        flippedCards.find(card => card.uniqueId === clickedCard.uniqueId)) return;
 
-    const newFlippedIndices = [...flippedIndices, index];
-    setFlippedIndices(newFlippedIndices);
+    const newFlippedCards = [...flippedCards, clickedCard];
+    setFlippedCards(newFlippedCards);
 
-    // Check for match when two cards are flipped
-    if (newFlippedIndices.length === 2) {
-      setMoves(moves + 1);
-      
-      if (cards[newFlippedIndices[0]] === cards[newFlippedIndices[1]]) {
+    // If two cards are flipped, check for match
+    if (newFlippedCards.length === 2) {
+      setMoves(moves => moves + 1);
+
+      if (newFlippedCards[0].id === newFlippedCards[1].id) {
         // Match found
-        setMatchedPairs([...matchedPairs, ...newFlippedIndices]);
-        setFlippedIndices([]);
-
-        // Check if game is complete
-        if (matchedPairs.length + 2 === cards.length) {
-          setGameComplete(true);
-        }
+        setMatchedPairs([...matchedPairs, clickedCard.id]);
+        setScore(score => score + 50);
+        setFlippedCards([]);
       } else {
-        // No match - flip cards back after delay
+        // No match, flip cards back
         setTimeout(() => {
-          setFlippedIndices([]);
+          setFlippedCards([]);
         }, 1000);
       }
     }
   };
 
+  const isCardFlipped = (card) => {
+    return flippedCards.find(flipped => flipped.uniqueId === card.uniqueId) ||
+           matchedPairs.includes(card.id);
+  };
+
   return (
-    <div className="memory-game">
+    <div className="memory-match">
+      <motion.button
+        className="back-button"
+        onClick={() => navigate('/child/games')}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        ← Back to Games
+      </motion.button>
+
       <div className="game-header">
         <h1>Memory Match</h1>
         <div className="game-info">
-          <span>Moves: {moves}</span>
-          <button onClick={initializeGame} className="reset-button">
-            New Game
-          </button>
+          <span className="moves">Moves: {moves}</span>
+          <span className="score">Score: {score}</span>
         </div>
       </div>
 
-      <div className="cards-grid">
-        {cards.map((emoji, index) => (
+      <motion.div 
+        className="game-board"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        {cards.map((card) => (
           <motion.div
-            key={index}
-            className={`card ${
-              flippedIndices.includes(index) || matchedPairs.includes(index) ? 'flipped' : ''
-            }`}
-            onClick={() => handleCardClick(index)}
-            variants={cardVariants}
-            initial="hidden"
-            animate={flippedIndices.includes(index) || matchedPairs.includes(index) ? 'visible' : 'hidden'}
-            transition={{ duration: 0.6 }}
+            key={card.uniqueId}
+            className={`card ${isCardFlipped(card) ? 'flipped' : ''}`}
+            onClick={() => handleCardClick(card)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             <div className="card-inner">
-              <div className="card-front">❓</div>
-              <div className="card-back">{emoji}</div>
+              <div className="card-front">
+                <span>?</span>
+              </div>
+              <div className="card-back">
+                <span>{card.emoji}</span>
+              </div>
             </div>
           </motion.div>
         ))}
-      </div>
+      </motion.div>
 
-      {gameComplete && (
-        <motion.div
+      {matchedPairs.length === CARD_PAIRS.length && (
+        <motion.div 
           className="game-complete"
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ duration: 0.5 }}
         >
-          <h2>🎉 Congratulations! 🎉</h2>
+          <h2>Congratulations! 🎉</h2>
           <p>You completed the game in {moves} moves!</p>
-          <button onClick={initializeGame}>Play Again</button>
+          <motion.button
+            className="play-again-btn"
+            onClick={initializeGame}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Play Again
+          </motion.button>
         </motion.div>
       )}
     </div>

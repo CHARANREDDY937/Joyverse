@@ -1,0 +1,147 @@
+.music-maker {
+  height: 100vh;
+  padding: 2rem;
+  background-color: #f5f6fa;
+}
+
+.music-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.music-header h1 {
+  color: #2c3e50;
+  font-size: 2.5rem;
+}
+
+.music-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  background: white;
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.instrument-selector,
+.drum-controls,
+.recording-controls {
+  text-align: center;
+}
+
+h3 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.instrument-buttons,
+.pattern-selector,
+.record-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.instrument-btn,
+.pattern-btn,
+.play-btn,
+.record-btn,
+.play-recording-btn {
+  padding: 0.8rem;
+  border: none;
+  border-radius: 8px;
+  background: #f1f2f6;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.instrument-btn.active,
+.pattern-btn.active {
+  background: #3498db;
+  color: white;
+}
+
+.play-btn {
+  background: #2ecc71;
+  color: white;
+  margin-top: 1rem;
+}
+
+.play-btn.active {
+  background: #e74c3c;
+}
+
+.record-btn {
+  background: #e74c3c;
+  color: white;
+}
+
+.record-btn.active {
+  background: #c0392b;
+}
+
+.play-recording-btn {
+  background: #3498db;
+  color: white;
+}
+
+.play-recording-btn:disabled {
+  background: #bdc3c7;
+  cursor: not-allowed;
+}
+
+.tempo-control {
+  margin: 1rem 0;
+}
+
+.tempo-control label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.tempo-control input {
+  width: 100%;
+}
+
+.piano-keys {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 0.5rem;
+  padding: 2rem;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.key {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 8px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+@media (max-width: 768px) {
+  .controls {
+    grid-template-columns: 1fr;
+  }
+
+  .piano-keys {
+    grid-template-columns: repeat(4, 1fr);
+  }
+} 

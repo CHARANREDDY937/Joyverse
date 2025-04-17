@@ -12,47 +12,79 @@ const ChildLogin = () => {
     confirmPassword: '',
     name: ''
   });
+  const [error, setError] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
+
     try {
-      // Add your authentication logic here
-      console.log('Form submitted:', formData);
-      
-      // After successful authentication
-      if (isLogin) {
-        // Navigate to games dashboard after successful login
-        navigate('/child/games');
+      const url = isLogin
+        ? 'http://localhost:5000/api/login'
+        : 'http://localhost:5000/api/signup';
+
+      const payload = {
+        username: formData.username,
+        password: formData.password,
+      };
+
+      // Add confirmPassword and name if it's a signup request
+      if (!isLogin) {
+        if (formData.password !== formData.confirmPassword) {
+          return setError('Passwords do not match');
+        }
+        payload.confirmPassword = formData.confirmPassword;
+        payload.name = formData.name;
+      }
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        if (isLogin) {
+          // Log the login event to MongoDB
+          await fetch('http://localhost:5000/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: formData.username }),
+          });
+        }
+        navigate('/child/games'); // Login or signup success
       } else {
-        // After successful registration, automatically log in and navigate
-        navigate('/child/games');
+        setError(data.message || 'An error occurred');
       }
     } catch (error) {
-      console.error('Authentication error:', error);
-      // Handle error appropriately
+      console.error('Error during API call:', error);
+      setError('Failed to connect to server');
     }
   };
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   const handleToggle = () => {
     setIsLogin(!isLogin);
+    setError(null);
   };
 
   return (
     <div className="child-login-container" data-state={isLogin ? "login" : "signup"}>
-      <motion.div 
+      <motion.div
         className="login-box"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <motion.div 
+        <motion.div
           className="login-header"
           initial={{ scale: 0.8 }}
           animate={{ scale: 1 }}
@@ -63,12 +95,7 @@ const ChildLogin = () => {
         </motion.div>
 
         <form onSubmit={handleSubmit} className="login-form">
-          <motion.div 
-            className="form-group"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-          >
+          <motion.div className="form-group" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
             <label htmlFor="username">Your Name</label>
             <input
               type="text"
@@ -81,12 +108,7 @@ const ChildLogin = () => {
             />
           </motion.div>
 
-          <motion.div 
-            className="form-group"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-          >
+          <motion.div className="form-group" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
             <label htmlFor="password">Secret Code</label>
             <input
               type="password"
@@ -100,47 +122,50 @@ const ChildLogin = () => {
           </motion.div>
 
           {!isLogin && (
-            <motion.div 
-              className="form-group"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              <label htmlFor="confirmPassword">Confirm Secret Code</label>
-              <input
-                type="password"
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                placeholder="Enter your secret code again"
-                required
-              />
-            </motion.div>
+            <>
+              <motion.div className="form-group" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
+                <label htmlFor="confirmPassword">Confirm Secret Code</label>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="Enter your secret code again"
+                  required
+                />
+              </motion.div>
+
+              <motion.div className="form-group" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }}>
+                <label htmlFor="name">Child's Full Name</label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="Enter your full name"
+                  required
+                />
+              </motion.div>
+            </>
           )}
 
-          <motion.button
-            type="submit"
-            className="submit-button"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
+          <motion.button type="submit" className="submit-button" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             {isLogin ? 'Let\'s Play!' : 'Join Now!'}
           </motion.button>
+
+          {error && (
+            <motion.div className="error-message" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
+              <p>{error}</p>
+            </motion.div>
+          )}
         </form>
 
-        <motion.div 
-          className="toggle-form"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-        >
+        <motion.div className="toggle-form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
           <p>
             {isLogin ? "Don't have an account?" : "Already have an account?"}
-            <button 
-              className="toggle-button"
-              onClick={handleToggle}
-            >
+            <button className="toggle-button" onClick={handleToggle}>
               {isLogin ? 'Join Now!' : 'Sign In!'}
             </button>
           </p>
@@ -150,4 +175,4 @@ const ChildLogin = () => {
   );
 };
 
-export default ChildLogin; 
+export default ChildLogin;
