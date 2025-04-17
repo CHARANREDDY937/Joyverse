@@ -3,28 +3,152 @@
 .games-dashboard {
   min-height: 100vh;
   padding: 2rem;
-  background: #7FDBDA;
-  background-image: 
-    repeating-linear-gradient(45deg, 
-      rgba(255,255,255,0.1) 0px, 
-      rgba(255,255,255,0.1) 10px, 
-      transparent 10px, 
-      transparent 20px
-    );
+  background: linear-gradient(
+    135deg,
+    #ffffff 0%,
+    #f8f9fa 25%,
+    #f1f3f5 50%,
+    #e9ecef 75%,
+    #ffffff 100%
+  );
+  background-attachment: fixed;
   font-family: 'Poppins', sans-serif;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  animation: fadeInUp 0.8s ease-in-out;
+  position: relative;
 }
 
-/* Header Styling */
+/* Ensure content stays above the overlay */
+.dashboard-header, .games-grid {
+  position: relative;
+  z-index: 1;
+}
+
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.game-card {
+  border-radius: 15px;
+  overflow: hidden;
+  
+  transition: transform 0.3s ease;
+}
+
+.card-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.game-image {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  overflow: hidden;
+}
+
+.game-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 2.5rem;
+  transition: all 0.3s ease;
+}
+
+.game-name-box {
+  text-align: center;
+  transform: translateY(0);
+  transition: transform 0.3s ease;
+  margin-bottom: 1.5rem;
+}
+
+.game-name-box span {
+  color: rgb(16, 1, 1);
+  font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+  font-size: 1.8rem;
+  font-weight: 900;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.game-card:hover .overlay {
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(240, 240, 240, 0.8) 100%
+  );
+}
+
+.game-card:hover .game-name-box {
+  transform: translateY(-5px);
+}
+
+/* Card color variations for top borders */
+.card-1 { border-top: 5px solid #FF6B6B; }
+.card-2 { border-top: 5px solid #4ECDC4; }
+.card-3 { border-top: 5px solid #FFD93D; }
+.card-4 { border-top: 5px solid #6C5CE7; }
+.card-5 { border-top: 5px solid #A8E6CF; }
+.card-6 { border-top: 5px solid #FF8B94; }
+.card-7 { border-top: 5px solid #B8F2E6; }
+.card-8 { border-top: 5px solid #FFA07A; }
+.card-9 { border-top: 5px solid #98DDCA; }
+
 .dashboard-header {
   text-align: center;
   margin-bottom: 3rem;
-  animation: fadeInDown 1s ease-out;
-  width: 100%;
-  max-width: 800px;
+}
+
+.dashboard-header h1 {
+  font-size: 2.5rem;
+  color: #2d3436;
+  margin-bottom: 1rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-header p {
+  font-size: 1.2rem;
+  color: #636e72;
+  text-shadow: none;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+  .games-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .games-grid {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+
+  .game-image {
+    height: 250px;
+  }
+
+  .game-name-box span {
+    font-size: 1.3rem;
+  }
 }
 
 .game-title {
@@ -58,11 +182,11 @@
 
 .dashboard-header p {
   font-size: 1.5rem;
-  color: white;
+  color: rgb(238, 20, 176);
   max-width: 650px;
   line-height: 1.7;
   margin: 0 auto;
-  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.1);
+ 
 }
 
 /* Game Card Container */
@@ -71,25 +195,6 @@
   max-width: 750px;
   padding: 2rem;
   perspective: 1200px;
-}
-
-/* Game Card */
-.game-card {
-  
-  border-radius: 25px;
-  padding: 3rem;
-  text-align: center;
-  
-  cursor: pointer;
-  position: relative;
-  backdrop-filter: blur(15px);
- 
-  transition: transform 0.4s ease, box-shadow 0.4s ease;
-}
-
-.game-card:hover {
-  transform: translateY(-10px) scale(1.02);
- 
 }
 
 /* Game Icon */
@@ -141,7 +246,7 @@
 }
 
 .game-features span {
-  background: rgba(247, 250, 252, 0.8);
+  background: rgba(44, 126, 180, 0.8);
   padding: 0.8rem 1.5rem;
   border-radius: 25px;
   font-size: 1.1rem;
@@ -149,121 +254,12 @@
   display: flex;
   align-items: center;
   gap: 0.8rem;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+ 
   transition: all 0.3s ease;
 }
 
 .game-features span:hover {
   transform: translateY(-3px);
-  background: rgba(247, 250, 252, 0.95);
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-}
-
-/* Button */
-.start-adventure-btn {
-  background: linear-gradient(45deg, #6B46C1, #9F7AEA);
-  color: white;
-  border: none;
-  padding: 1.2rem 3rem;
-  border-radius: 30px;
-  font-size: 1.3rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(107, 70, 193, 0.3);
-  position: relative;
-  overflow: hidden;
-}
-
-.start-adventure-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(45deg, rgba(255, 255, 255, 0.2), transparent);
-  transform: translateX(-100%);
-  transition: transform 0.6s;
-}
-
-.start-adventure-btn:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 30px rgba(107, 70, 193, 0.4);
-}
-
-.start-adventure-btn:hover::before {
-  transform: translateX(100%);
-}
-
-.start-adventure-btn:active {
-  transform: translateY(-2px);
-}
-
-/* Animations */
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
-
-@keyframes pulse {
-  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
-  50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.4; }
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .games-dashboard {
-    padding: 1rem;
-  }
-
-  .game-title {
-    font-size: 3.5rem;
-  }
-
-  .character {
-    font-size: 3rem;
-    top: -20px;
-  }
-
-  .dashboard-header p {
-    font-size: 1.2rem;
-  }
-
-  .game-card {
-    padding: 2rem;
-  }
-
-  .game-icon {
-    font-size: 4rem;
-  }
-
-  .game-card h2 {
-    font-size: 2rem;
-  }
-
-  .game-card p {
-    font-size: 1.1rem;
-  }
-
-  .game-features span {
-    font-size: 1rem;
-    padding: 0.7rem 1.2rem;
-  }
-
-  .start-adventure-btn {
-    font-size: 1.2rem;
-    padding: 1rem 2.5rem;
-  }
+  background: rgba(75, 145, 191, 0.95);
+ 
 }
