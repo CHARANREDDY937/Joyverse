@@ -1,116 +1,115 @@
-import React, { useRef, useEffect, useState } from "react";
-import Webcam from "react-webcam";
+import React, { useRef, useEffect } from "react";
 import { FaceMesh } from "@mediapipe/face_mesh";
-import * as camUtils from "@mediapipe/camera_utils";
+import { Camera } from "@mediapipe/camera_utils";
+import * as drawingUtils from "@mediapipe/drawing_utils";
+import { FACEMESH_TESSELATION } from "@mediapipe/face_mesh";
 
-function App() {
-  const webcamRef = useRef(null);
-  const [latestLandmarks, setLatestLandmarks] = useState(null);
-  const [collectedLandmarks, setCollectedLandmarks] = useState([]);
-  const cameraRef = useRef(null); // Keep camera instance for cleanup
+const EmotionDetector = () => {
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
 
-  // Setup FaceMesh and capture loop
   useEffect(() => {
-    const faceMesh = new FaceMesh({
-      locateFile: (file) =>
-        `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
-    });
+    if (
+      typeof window !== "undefined" &&
+      videoRef.current &&
+      canvasRef.current
+    ) {
+      const videoElement = videoRef.current;
+      const canvasElement = canvasRef.current;
+      const canvasCtx = canvasElement.getContext("2d");
 
-    faceMesh.setOptions({
-      maxNumFaces: 1,
-      refineLandmarks: true,
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5,
-    });
+      const faceMesh = new FaceMesh({
+        locateFile: (file) =>
+          `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
+      });
 
-    faceMesh.onResults((results) => {
-      if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
-        setLatestLandmarks(results.multiFaceLandmarks[0]);
-      } else {
-        setLatestLandmarks(null);
-      }
-    });
+      faceMesh.setOptions({
+        maxNumFaces: 1,
+        refineLandmarks: true,
+        minDetectionConfidence: 0.3,
+        minTrackingConfidence: 0.3,
+      });
 
-    const checkVideoReady = setInterval(() => {
-      if (
-        webcamRef.current &&
-        webcamRef.current.video &&
-        webcamRef.current.video.readyState === 4
-      ) {
-        // Start camera once video is ready
-        clearInterval(checkVideoReady);
-        cameraRef.current = new camUtils.Camera(webcamRef.current.video, {
-          onFrame: async () => {
-            await faceMesh.send({ image: webcamRef.current.video });
-          },
-          width: 640,
-          height: 480,
-        });
-        cameraRef.current.start();
-      }
-    }, 500);
+      faceMesh.onResults((results) => {
+        canvasCtx.save();
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        canvasCtx.drawImage(
+          results.image,
+          0,
+          0,
+          canvasElement.width,
+          canvasElement.height
+        );
 
-    const interval = setInterval(() => {
-      if (latestLandmarks) {
-        const timestamp = new Date().toISOString();
-        const landmarksWithTime = latestLandmarks.map((point, index) => ({
-          timestamp,
-          index,
-          x: point.x,
-          y: point.y,
-          z: point.z,
-        }));
-        setCollectedLandmarks((prev) => [...prev, ...landmarksWithTime]);
-      }
-    }, 5000);
+        if (
+          results.multiFaceLandmarks &&
+          results.multiFaceLandmarks.length > 0
+        ) {
+          const landmarks = results.multiFaceLandmarks[0];
 
-    return () => {
-      clearInterval(interval);
-      if (cameraRef.current) cameraRef.current.stop();
-    };
-  }, [latestLandmarks]);
+          // Draw mesh
+          drawingUtils.drawConnectors(
+            canvasCtx,
+            landmarks,
+            FACEMESH_TESSELATION,
+            { color: "#00FF00", lineWidth: 0.5 }
+          );
 
-  const exportCSV = () => {
-    if (collectedLandmarks.length === 0) {
-      alert("❌ No landmarks collected yet.");
-      return;
+          const landmarkData = landmarks.slice(0, 468).map((pt) => [pt.x, pt.y, pt.z]);
+
+          // ✅ Shape debug
+          console.log("✅ Landmark count:", landmarkData.length);
+          console.log("✅ First landmark:", landmarkData[0]);
+
+          // ✅ Only send if shape is valid
+          if (
+            Array.isArray(landmarkData) &&
+            landmarkData.length === 468 &&
+            landmarkData.every((pt) => Array.isArray(pt) && pt.length === 3)
+          ) {
+            fetch("http://localhost:8000/predict", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                landmarks: landmarkData,
+              }),
+            })
+              .then((res) => res.json())
+              .then((data) => {
+                console.log("📦 Full response from backend:", data);
+                console.log("🎯 Predicted emotion:", data.predicted_emotion || data.emotion);
+              })
+              .catch((err) => console.error("❌ Prediction error:", err));
+          } else {
+            console.warn("❌ Landmark shape is invalid!");
+          }
+        } else {
+          console.warn("🚫 No valid face landmarks detected.");
+        }
+
+        canvasCtx.restore();
+      });
+
+      const camera = new Camera(videoElement, {
+        onFrame: async () => {
+          await faceMesh.send({ image: videoElement });
+        },
+        width: 640,
+        height: 480,
+      });
+
+      camera.start();
     }
-
-    let csv = "timestamp,index,x,y,z\n";
-    collectedLandmarks.forEach((point) => {
-      csv += `${point.timestamp},${point.index},${point.x},${point.y},${point.z}\n`;
-    });
-
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "landmarks_collected.csv";
-    a.click();
-  };
+  }, []);
 
   return (
-    <div style={{ textAlign: "center", paddingTop: "40px" }}>
-      {/* Hidden Webcam Component */}
-      <Webcam
-        ref={webcamRef}
-        audio={false}
-        mirrored={true}
-        screenshotFormat="image/jpeg"
-        style={{ display: "none" }}
-      />
-      <p>🔍 Capturing face landmarks in the background every 5 seconds...</p>
-      <button onClick={exportCSV} style={buttonStyle}>
-        📄 Export Collected Landmarks CSV
-      </button>
+    <div>
+      <video ref={videoRef} style={{ display: "none" }}></video>
+      <canvas ref={canvasRef} width="640" height="480" />
     </div>
   );
-}
-
-const buttonStyle = {
-  margin: "10px",
-  padding: "10px 20px",
-  fontSize: "16px",
-  cursor: "pointer",
 };
 
-export default App;
+export default EmotionDetector;
