@@ -198,6 +198,9 @@ y_train_tensor = torch.tensor(y_train, dtype=torch.long)
 y_test_tensor = torch.tensor(y_test, dtype=torch.long)
 
 # DataLoader
+#Bundles inputs and labels together into one dataset object.
+# Each item in this dataset returns a tuple:
+# (features, label)
 train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
 test_dataset = TensorDataset(X_test_tensor, y_test_tensor)
 train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
@@ -229,7 +232,7 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.AdamW(model.parameters(), lr=0.0001)
 
 # Check if trained model exists
-model_path = "Emotion_model.pth"
+model_path = "Emotion_model2000.pth"
 if os.path.exists(model_path):
     print("Loading pre-trained model...")
     model.load_state_dict(torch.load(model_path, map_location=device))
