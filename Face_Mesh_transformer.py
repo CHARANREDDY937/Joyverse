@@ -208,7 +208,7 @@ test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
 # Define Transformer Model
 class FaceEmotionTransformer(nn.Module):
-    def __init__(self, input_dim=3, seq_length=468, num_classes=6, embed_dim=128, num_heads=8, num_layers=4):
+    def __init__(self, input_dim=3, seq_length=468, num_classes=6, embed_dim=512, num_heads=12, num_layers=6):
         super(FaceEmotionTransformer, self).__init__()
         self.embedding = nn.Linear(input_dim, embed_dim)
         encoder_layer = nn.TransformerEncoderLayer(d_model=embed_dim, nhead=num_heads, dropout=0.1)
@@ -232,13 +232,13 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.AdamW(model.parameters(), lr=0.0001)
 
 # Check if trained model exists
-model_path = "Emotion_model2000.pth"
+model_path = "Emotion_model2000(1).pth"
 if os.path.exists(model_path):
     print("Loading pre-trained model...")
     model.load_state_dict(torch.load(model_path, map_location=device))
 else:
     print("Training model from scratch...")
-    num_epochs = 200
+    num_epochs = 2000
     for epoch in range(num_epochs):
         model.train()
         total_loss = 0
