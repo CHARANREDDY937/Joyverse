@@ -2,12 +2,12 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { useChildContext } from '../context/ChildContext'; // Corrected import path
+import { useChildContext } from '../context/ChildContext'; 
 import './TherapistLogin.css';
 
 const TherapistLogin = () => {
   const navigate = useNavigate();
-  const { setChildData } = useChildContext(); // Get the setter function from context
+  const { setChildData } = useChildContext(); 
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     email: '',
@@ -24,7 +24,7 @@ const TherapistLogin = () => {
       email: formData.email,
     });
     // Navigate to the child's info page
-    navigate('/child-info'); // Replace with the actual path for the child's info page
+    navigate('/child-info'); 
   };
 
   const handleChange = (e) => {

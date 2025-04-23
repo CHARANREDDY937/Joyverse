@@ -1,13 +1,12 @@
-// joyverse/src/App.js
 import './App.css';
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-import { ChildProvider } from './context/ChildContext'; // Import the provider
+import { ChildProvider } from './context/ChildContext'; 
 import InteractiveElements from './components/InteractiveElements';
 import SelectionPage from './components/SelectionPage';
 import ChildLogin from './components/ChildLogin';
 import TherapistLogin from './components/TherapistLogin';
-import ChildInfoPage from './components/ChildInfoPage'; // Import the new component
+import ChildInfoPage from './components/ChildInfoPage'; 
 import GamesDashboard from './components/GamesDashboard';
 import Hangman from './components/games/Hangman';
 import WordWizard from './components/games/WordWizard';
@@ -19,6 +18,7 @@ import PuzzleWorld from './components/games/PuzzleWorld';
 import ReadingRace from './components/games/ReadingRace';
 import ArtStudio from './components/games/ArtStudio';
 import MusicMaker from './components/games/MusicMaker';
+import ChildList from './components/childlist'; 
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -36,6 +36,7 @@ const HomePage = () => {
         <button className="get-started-btn" onClick={handleGetStarted}>
           Get Started
         </button>
+       
       </div>
     </div>
   );
@@ -43,7 +44,7 @@ const HomePage = () => {
 
 function App() {
   return (
-    <ChildProvider> {/* Wrap your Router with ChildProvider */}
+    <ChildProvider> 
       <Router>
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -61,7 +62,8 @@ function App() {
           <Route path="/child/games/reading" element={<ReadingRace />} />
           <Route path="/child/games/art" element={<ArtStudio />} />
           <Route path="/child/games/music" element={<MusicMaker />} />
-          <Route path="/child-info" element={<ChildInfoPage />} /> {/* New route for child's info */}
+          <Route path="/child-info" element={<ChildInfoPage />} /> 
+          <Route path="/childlist" element={<ChildList />} /> 
         </Routes>
       </Router>
     </ChildProvider>
