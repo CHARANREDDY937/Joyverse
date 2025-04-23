@@ -1,2 +1,3 @@
 node_modules/
 venv/
+face_mesh_data.csv

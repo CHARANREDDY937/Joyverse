@@ -12,8 +12,8 @@ from sklearn.metrics import accuracy_score
 import os
 
 # Load Dataset
-file_path = r"C:\Users\bannu\OneDrive\Desktop\clone\JoyVerseDataSet (1).xlsx"
-df = pd.read_excel(file_path)
+file_path = r"C:\Users\bannu\OneDrive\Desktop\Joyverse\face_mesh_data.csv"
+df = pd.read_csv(file_path)
 
 # Encode Emotion Labels
 label_encoder = LabelEncoder()
