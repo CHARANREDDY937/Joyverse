@@ -56,12 +56,12 @@ function App() {
           <Route path="/child/games/hangman" element={<Hangman />} />
           <Route path="/child/games/math-safari" element={<MathSafari />} />
           <Route path="/child/games/memory" element={<MemoryMatch />} />
-          <Route path="/child/games/spelling" element={<SpellingBee />} />
+           <Route path="/child/games/spelling" element={<SpellingBee />} />
           <Route path="/child/games/science" element={<ScienceQuest />} />
           <Route path="/child/games/puzzle" element={<PuzzleWorld />} />
           <Route path="/child/games/reading" element={<ReadingRace />} />
           <Route path="/child/games/art" element={<ArtStudio />} />
-          <Route path="/child/games/music" element={<MusicMaker />} />
+          <Route path="/child/games/music" element={<MusicMaker />} /> 
           <Route path="/child-info" element={<ChildInfoPage />} /> 
           <Route path="/childlist" element={<ChildList />} /> 
         </Routes>

@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import './childlist.css';
 
 const ChildList = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -16,34 +21,105 @@ const ChildList = () => {
         setUsers(data);
       } catch (error) {
         setError(error.message);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchUsers();
   }, []);
 
+  const filteredUsers = users.filter(user =>
+    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.username.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleViewProgress = (userId) => {
+    navigate(`/child-progress/${userId}`);
+  };
+
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="loader"></div>
+        <p>Loading children's data...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="container">
-      <h1>User Dashboard</h1>
+    <motion.div 
+      className="child-list-container"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <div className="dashboard-header">
+        <h1>Children's Progress Dashboard</h1>
+        <div className="search-bar">
+          <input
+            type="text"
+            placeholder="Search by name or username..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
+
       {error ? (
-        <p className="error-message">{error}</p>
+        <motion.div 
+          className="error-message"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          {error}
+        </motion.div>
       ) : (
         <div className="user-grid">
-          {users.map(user => (
-            <div className="user-card" key={user._id}>
-              <i className="fas fa-user-circle user-icon"></i>
-              <div className="user-info">
-                <p className="name">{user.name}</p>
-                <p className="username">@{user.username}</p>
+          {filteredUsers.map((user, index) => (
+            <motion.div
+              key={user._id}
+              className="user-card"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              whileHover={{ scale: 1.02 }}
+            >
+              <div className="user-header">
+                <div className="user-avatar">
+                  <i className="fas fa-user-circle"></i>
+                </div>
+                <div className="user-info">
+                  <h3>{user.name}</h3>
+                  <p>@{user.username}</p>
+                </div>
               </div>
-              <button className="progress-btn">
-                <i className="fas fa-chart-line"></i> View Progress
-              </button>
-            </div>
+
+              <div className="user-stats">
+                <div className="stat">
+                  <i className="fas fa-gamepad"></i>
+                  <span>Games: {user.gamesPlayed || 0}</span>
+                </div>
+                <div className="stat">
+                  <i className="fas fa-star"></i>
+                  <span>Score: {user.totalScore || 0}</span>
+                </div>
+              </div>
+
+              <motion.button
+                className="view-progress-btn"
+                onClick={() => handleViewProgress(user._id)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <i className="fas fa-chart-line"></i>
+                View Progress
+              </motion.button>
+            </motion.div>
           ))}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 
