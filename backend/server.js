@@ -112,6 +112,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json()); // Middleware for parsing JSON requests
 
+<<<<<<< HEAD
 // Connect to MongoDB Atlas
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb+srv://bannuru_charan_reddy:RB1817BA@cluster1.q9nhb.mongodb.net/childlogin?retryWrites=true&w=majority&appName=Cluster1';
 
@@ -120,6 +121,14 @@ mongoose.connect(MONGO_URI, {
   useUnifiedTopology: true,
 })
   .then(() => console.log(`✅ Connected to MongoDB Atlas at ${MONGO_URI}`))
+=======
+// ✅ Correct MongoDB URI (password special character encoded)
+const MONGO_URI = "mongodb+srv://sushmasreebandi92:Ramuindu%40123@cluster0.exp0qcv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+
+// ✅ Connect to MongoDB (modern Mongoose doesn't need options)
+mongoose.connect(MONGO_URI)
+  .then(() => console.log(`✅ Connected to MongoDB at ${MONGO_URI}`))
+>>>>>>> c3374dbd8dd470d866b60e977a681f3265492e04
   .catch((err) => console.error('❌ MongoDB connection error:', err));
 
 // Schema and Model for User
