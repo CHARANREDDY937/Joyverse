@@ -1,0 +1,64 @@
+
+
+/* Font Imports */
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Parisienne&display=swap');
+
+.child-info-page {
+  padding: 30px;
+  min-height: 100vh;
+  font-family: 'Quicksand', sans-serif;
+  background: url('https://i.pinimg.com/736x/62/40/79/6240794fe4e87e24f6c80c09b357418c.jpg') no-repeat center center/cover;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.child-info-container {
+  max-width: 650px;
+  margin: auto;
+  text-align: center;
+  background: linear-gradient(135deg, rgba(255, 238, 243, 0.95), rgba(255, 255, 255, 0.97));
+  border: 2px solid #ffd6e1;
+  border-radius: 20px;
+  padding: 40px 30px;
+  box-shadow: 0 12px 35px rgba(255, 182, 193, 0.25), inset 0 0 10px rgba(255, 182, 193, 0.1);
+  backdrop-filter: blur(4px);
+}
+
+.child-info-container h2 {
+  font-family: 'Parisienne', cursive;
+  font-size: 32px;
+  color: #c94f7c;
+  margin-bottom: 20px;
+  font-weight: 400;
+}
+
+.child-details {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 12px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  color: #333;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.view-progress-button {
+  margin-top: 20px;
+  padding: 12px 25px;
+  background-color: #ff6f91;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 17px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.view-progress-button:hover {
+  background-color: #ff4f7c;
+  transform: scale(1.05);
+}

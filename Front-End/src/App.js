@@ -93,6 +93,7 @@ import ReadingRace from './components/games/ReadingRace';
 import ArtStudio from './components/games/ArtStudio';
 import MusicMaker from './components/games/MusicMaker';
 import ChildList from './components/childlist';
+
 import { FaceMesh } from '@mediapipe/face_mesh';
 import { Camera } from '@mediapipe/camera_utils';
 
@@ -108,8 +109,7 @@ const BackgroundEmotionDetector = ({ isActive }) => {
       const videoElement = videoRef.current;
 
       const faceMesh = new FaceMesh({
-        locateFile: (file) =>
-          `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
       });
 
       faceMesh.setOptions({
@@ -120,10 +120,7 @@ const BackgroundEmotionDetector = ({ isActive }) => {
       });
 
       faceMesh.onResults((results) => {
-        if (
-          results.multiFaceLandmarks &&
-          results.multiFaceLandmarks.length > 0
-        ) {
+        if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
           const landmarks = results.multiFaceLandmarks[0];
           const landmarkData = landmarks.slice(0, 468).map((pt) => [pt.x, pt.y, pt.z]);
 
