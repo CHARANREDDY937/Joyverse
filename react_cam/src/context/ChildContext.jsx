@@ -1,18 +1,23 @@
-   
-   import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
-   const ChildContext = createContext();
+// Create the context for child data
+const ChildContext = createContext();
 
-   export const ChildProvider = ({ children }) => {
-     const [childData, setChildData] = useState(null); // State to hold therapist's data
+export const ChildProvider = ({ children }) => {
+  const [childData, setChildData] = useState(null); // Default null state
 
-     return (
-       <ChildContext.Provider value={{ childData, setChildData }}>
-         {children}
-       </ChildContext.Provider>
-     );
-   };
+  return (
+    <ChildContext.Provider value={{ childData, setChildData }}>
+      {children}
+    </ChildContext.Provider>
+  );
+};
 
-   export const useChildContext = () => {
-     return useContext(ChildContext);
-   };
+// Custom hook to use the context
+export const useChildContext = () => {
+  const context = useContext(ChildContext);
+  if (!context) {
+    throw new Error('useChildContext must be used within a ChildProvider');
+  }
+  return context;
+};
