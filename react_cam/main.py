@@ -1,4 +1,3 @@
-
 import os
 import csv
 from fastapi import FastAPI
@@ -77,12 +76,37 @@ async def predict_emotion(data: LandmarkData):
         _, predicted = torch.max(output, 1)
         emotion = emotion_labels.get(predicted.item(), "Unknown")
 
+    # Save the new prediction
     with open(csv_file, "a", newline="") as file:
         writer = csv.writer(file)
         writer.writerow([datetime.now().isoformat(), emotion])
 
-    return {"predicted_emotion": emotion}
+    # Read the entire CSV to calculate percentages
+    emotion_counts = {label: 0 for label in emotion_labels.values()}
+    total = 0
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    with open(csv_file, "r") as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            if row["emotion"] in emotion_counts:
+                emotion_counts[row["emotion"]] += 1
+                total += 1
+
+    if total > 0:
+        emotion_percentages = {emotion: (count / total) * 100 for emotion, count in emotion_counts.items()}
+    else:
+        emotion_percentages = {emotion: 0.0 for emotion in emotion_counts}
+
+    # Append the percentage summary at the end of the CSV
+    with open(csv_file, "a", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow([])
+        writer.writerow(["Emotion", "Percentage"])
+        for emotion, percentage in emotion_percentages.items():
+            writer.writerow([emotion, f"{percentage:.2f}%"])
+        writer.writerow([])  # Add an empty line for separation
+
+    return {
+        "predicted_emotion": emotion,
+        "percentages": emotion_percentages
+    }
