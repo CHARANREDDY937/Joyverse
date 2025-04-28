@@ -4,6 +4,8 @@ import collections
 from datetime import datetime
 from typing import List
 
+import pandas as pd
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -129,3 +131,27 @@ async def predict_emotion(data: LandmarkData):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
+
+# 1. Load the CSV file
+df = pd.read_csv('emotions_log.csv', names=["timestamp", "emotion"], skiprows=1)
+
+# 2. Count how many times each emotion appears
+emotion_counts = df['emotion'].value_counts()
+
+# 3. Total number of predictions
+total_predictions = len(df)
+
+# 4. Calculate percentages
+emotion_percentages = (emotion_counts / total_predictions) * 100
+
+# 5. Convert to dictionary
+emotion_percentages_dict = emotion_percentages.to_dict()
+
+# 6. Print percentages
+print("Emotion percentages:")
+for emotion, percent in emotion_percentages_dict.items():
+    print(f"{emotion}: {percent:.2f}%")
+
+# 7. Save percentages to a new CSV file (optional)
+emotion_percentages.to_csv('emotion_percentages.csv', header=True)
