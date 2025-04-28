@@ -1,14 +1,18 @@
 import os
 import csv
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-import torch
-import torch.nn as nn
-import numpy as np
+import collections
 from datetime import datetime
 from typing import List
 
+import numpy as np
+import torch
+import torch.nn as nn
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from contextlib import asynccontextmanager
+
+# Define the Transformer Model
 class FaceEmotionTransformer(nn.Module):
     def __init__(self, input_dim=3, seq_length=468, num_classes=7, embed_dim=128, num_heads=8, num_layers=4):
         super(FaceEmotionTransformer, self).__init__()
@@ -19,41 +23,18 @@ class FaceEmotionTransformer(nn.Module):
 
     def forward(self, x):
         x = self.embedding(x)
-        x = x.permute(1, 0, 2)
+        x = x.permute(1, 0, 2)  # Transformer expects (seq_len, batch, embed_dim)
         x = self.transformer_encoder(x)
-        x = x.mean(dim=0)
+        x = x.mean(dim=0)  # Global average pooling
         return self.fc(x)
 
+# Pydantic Model for incoming landmark data
 class LandmarkData(BaseModel):
     landmarks: List[List[float]]
 
-app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = FaceEmotionTransformer(num_classes=7).to(device)
-try:
-    print("🔄 Loading model...")
-    model.load_state_dict(torch.load("Emotion_model2000.pth", map_location=device))
-    model.eval()
-    print("✅ Model loaded successfully.")
-except Exception as e:
-    print("❌ Model load failed:", e)
-
-
 csv_file = "emotions_log.csv"
-if not os.path.exists(csv_file):
-    with open(csv_file, "w", newline="") as file:
-        writer = csv.writer(file)
-        writer.writerow(["timestamp", "emotion"])
 
+# Emotion labels mapping
 emotion_labels = {
     0: "Anger",
     1: "Disgust",
@@ -64,6 +45,67 @@ emotion_labels = {
     6: "Neutral",
 }
 
+# Setup device and load model
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = FaceEmotionTransformer(num_classes=7).to(device)
+try:
+    print("🔄 Loading model...")
+    model.load_state_dict(torch.load("Emotion_model2000.pth", map_location=device))
+    model.eval()
+    print("✅ Model loaded successfully.")
+except Exception as e:
+    print("❌ Model load failed:", e)
+
+# Prepare CSV file if it doesn't exist
+if not os.path.exists(csv_file):
+    with open(csv_file, "w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["timestamp", "emotion"])
+
+# Lifespan context
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+    # Shutdown logic here
+    print("🚪 Server is shutting down... Calculating emotion percentages...")
+    emotion_counts = collections.Counter()
+    total = 0
+
+    with open(csv_file, "r", newline="") as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            if row.get('emotion') in emotion_labels.values():
+                emotion_counts[row["emotion"]] += 1
+                total += 1
+
+    if total == 0:
+        print("⚠️ No emotion data to calculate.")
+        return
+
+    # Write percentages into the same emotions_log.csv file
+    with open(csv_file, "a", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow([])  # blank line
+        writer.writerow(["Summary"])  # heading
+        for emotion, count in emotion_counts.items():
+            percentage = (count / total) * 100
+            writer.writerow([emotion, f"{percentage:.2f}%"])
+
+    print("✅ Emotion percentages appended to emotions_log.csv.")
+
+# Initialize FastAPI app
+app = FastAPI(lifespan=lifespan)
+
+# Enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# API endpoint: Predict Emotion
 @app.post("/predict")
 async def predict_emotion(data: LandmarkData):
     landmarks = np.array(data.landmarks).astype(np.float32)
@@ -76,37 +118,14 @@ async def predict_emotion(data: LandmarkData):
         _, predicted = torch.max(output, 1)
         emotion = emotion_labels.get(predicted.item(), "Unknown")
 
-    # Save the new prediction
+    # Log the prediction
     with open(csv_file, "a", newline="") as file:
         writer = csv.writer(file)
         writer.writerow([datetime.now().isoformat(), emotion])
 
-    # Read the entire CSV to calculate percentages
-    emotion_counts = {label: 0 for label in emotion_labels.values()}
-    total = 0
+    return {"predicted_emotion": emotion}
 
-    with open(csv_file, "r") as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            if row["emotion"] in emotion_counts:
-                emotion_counts[row["emotion"]] += 1
-                total += 1
-
-    if total > 0:
-        emotion_percentages = {emotion: (count / total) * 100 for emotion, count in emotion_counts.items()}
-    else:
-        emotion_percentages = {emotion: 0.0 for emotion in emotion_counts}
-
-    # Append the percentage summary at the end of the CSV
-    with open(csv_file, "a", newline="") as file:
-        writer = csv.writer(file)
-        writer.writerow([])
-        writer.writerow(["Emotion", "Percentage"])
-        for emotion, percentage in emotion_percentages.items():
-            writer.writerow([emotion, f"{percentage:.2f}%"])
-        writer.writerow([])  # Add an empty line for separation
-
-    return {
-        "predicted_emotion": emotion,
-        "percentages": emotion_percentages
-    }
+# Run the server
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
