@@ -1,0 +1,1 @@
+// Placeholder for face_mesh_solution_simd_wasm_bin.js

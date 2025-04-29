@@ -1,0 +1,148 @@
+.puzzle-world {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.game-header {
+  margin-bottom: 2rem;
+}
+
+.game-header h1 {
+  color: #2c3e50;
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.game-info {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  align-items: center;
+}
+
+.moves {
+  font-size: 1.2rem;
+  background: white;
+  padding: 0.5rem 1.5rem;
+  border-radius: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.reset-btn {
+  padding: 0.5rem 1.5rem;
+  border: none;
+  border-radius: 20px;
+  background: #e74c3c;
+  color: white;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.puzzle-selector {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.puzzle-btn {
+  padding: 0.5rem 1.5rem;
+  border: none;
+  border-radius: 20px;
+  background: #e0e0e0;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.puzzle-btn.active {
+  background: #3498db;
+  color: white;
+}
+
+.puzzle-container {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-size), 1fr);
+  gap: 4px;
+  max-width: 500px;
+  margin: 0 auto;
+  background: #34495e;
+  padding: 4px;
+  border-radius: 10px;
+}
+
+.puzzle-tile {
+  aspect-ratio: 1;
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #34495e;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: transform 0.2s ease;
+}
+
+.puzzle-tile.empty {
+  background-color: #34495e;
+  cursor: default;
+}
+
+.victory-screen {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.2);
+  z-index: 10;
+}
+
+.next-puzzle-btn {
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 25px;
+  background: #2ecc71;
+  color: white;
+  font-size: 1.1rem;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.back-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 20px;
+  background: #3498db;
+  color: white;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 768px) {
+  .puzzle-world {
+    padding: 1rem;
+  }
+
+  .puzzle-container {
+    max-width: 100%;
+  }
+
+  .puzzle-tile {
+    font-size: 1.2rem;
+  }
+} 
