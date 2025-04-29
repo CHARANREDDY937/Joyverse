@@ -1,8 +1,5 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { ChildProvider } from './context/ChildContext';
-import InteractiveElements from './components/InteractiveElements';
-import SelectionPage from './components/SelectionPage';
 import ChildLogin from './components/ChildLogin';
 import TherapistLogin from './components/TherapistLogin';
 import ChildInfoPage from './components/ChildInfoPage';
@@ -18,14 +15,14 @@ import ReadingRace from './components/games/ReadingRace';
 import ArtStudio from './components/games/ArtStudio';
 import MusicMaker from './components/games/MusicMaker';
 import ChildList from './components/childlist';
-
 import { FaceMesh } from '@mediapipe/face_mesh';
 import { Camera } from '@mediapipe/camera_utils';
-
 import './App.css';
 
+// -----------------------------
 // BackgroundEmotionDetector Component
-const BackgroundEmotionDetector = ({ isActive }) => {
+// -----------------------------
+const BackgroundEmotionDetector = ({ isActive, onStopGame }) => {
   const videoRef = useRef(null);
   const capturedLandmarks = useRef(null);
   const intervalRef = useRef(null);
@@ -85,7 +82,12 @@ const BackgroundEmotionDetector = ({ isActive }) => {
           })
             .then((res) => res.json())
             .then((data) => {
-              console.log('🎯 Predicted emotion:', data.predicted_emotion || data.emotion);
+              const predictedEmotion = data.predicted_emotion || data.emotion;
+              console.log('🎯 Predicted emotion:', predictedEmotion);
+
+              if (predictedEmotion) {
+                onStopGame(predictedEmotion);
+              }
             })
             .catch((err) => console.error('❌ Prediction error:', err));
         }
@@ -102,7 +104,7 @@ const BackgroundEmotionDetector = ({ isActive }) => {
       cameraRef.current.stop();
       cameraRef.current = null;
     }
-  }, [isActive]);
+  }, [isActive, onStopGame]);
 
   return (
     <video
@@ -115,17 +117,18 @@ const BackgroundEmotionDetector = ({ isActive }) => {
   );
 };
 
+// -----------------------------
 // HomePage Component
+// -----------------------------
 const HomePage = () => {
   const navigate = useNavigate();
 
   const handleGetStarted = () => {
-    navigate('/select');
+    navigate('/child');   // ✅ Now navigating to /child instead of missing /select
   };
 
   return (
     <div className="App">
-      <InteractiveElements />
       <div className="main-container">
         <h1 className="welcome-text">Welcome to Joyverse</h1>
         <p className="subtitle">Your Gateway to Digital Joy</p>
@@ -137,124 +140,153 @@ const HomePage = () => {
   );
 };
 
-// GameWrapper to control emotion detector for game routes
+// -----------------------------
+// Handle Emotion Detection API
+// -----------------------------
+const handleEmotionDetected = (emotion) => {
+  fetch('http://localhost:5005/api/game/next-level', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ emotion: emotion }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      console.log('🎯 Next Level Data:', data);
+    })
+    .catch((err) => {
+      console.error('❌ Error calling next-level API:', err);
+    });
+};
+
+// -----------------------------
+// GameWrapper Component
+// -----------------------------
 const GameWrapper = ({ children }) => {
   const location = useLocation();
-  const isGameRoute = location.pathname.startsWith('/child/games');
+  const isGameRoute = 
+  location.pathname.startsWith('/child/games/science')||
+  location.pathname.startsWith('/child/games/puzzle')||
+  location.pathname.startsWith('/child/games/memory')||
+  location.pathname.startsWith('/child/games/art')||
+  location.pathname.startsWith('/child/games/music')||
+  location.pathname.startsWith('/child/games/word-wizard')||
+  location.pathname.startsWith('/child/games/math-safari')||
+  location.pathname.startsWith('/child/games/spelling')||
+  location.pathname.startsWith('/child/games/reading');
 
   return (
     <>
-      {isGameRoute && <BackgroundEmotionDetector isActive={true} />}
+      {isGameRoute && <BackgroundEmotionDetector isActive={true} onStopGame={handleEmotionDetected} />}
       {children}
     </>
   );
 };
 
-// App Component
+// -----------------------------
+// Main App Component
+// -----------------------------
 function App() {
   return (
-    <ChildProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/select" element={<SelectionPage />} />
-          <Route path="/child" element={<ChildLogin />} />
-          <Route
-            path="/child/games"
-            element={
-              <GameWrapper>
-                <GamesDashboard />
-              </GameWrapper>
-            }
-          />
-          <Route
-            path="/child/games/word-wizard"
-            element={
-              <GameWrapper>
-                <WordWizard />
-              </GameWrapper>
-            }
-          />
-          <Route
-            path="/child/games/hangman"
-            element={
-              <GameWrapper>
-                <Hangman />
-              </GameWrapper>
-            }
-          />
-          <Route
-            path="/child/games/math-safari"
-            element={
-              <GameWrapper>
-                <MathSafari />
-              </GameWrapper>
-            }
-          />
-          <Route
-            path="/child/games/memory"
-            element={
-              <GameWrapper>
-                <MemoryMatch />
-              </GameWrapper>
-            }
-          />
-          <Route
-            path="/child/games/spelling"
-            element={
-              <GameWrapper>
-                <SpellingBee />
-              </GameWrapper>
-            }
-          />
-          <Route
-            path="/child/games/science"
-            element={
-              <GameWrapper>
-                <ScienceQuest />
-              </GameWrapper>
-            }
-          />
-          <Route
-            path="/child/games/puzzle"
-            element={
-              <GameWrapper>
-                <PuzzleWorld />
-              </GameWrapper>
-            }
-          />
-          <Route
-            path="/child/games/reading"
-            element={
-              <GameWrapper>
-                <ReadingRace />
-              </GameWrapper>
-            }
-          />
-          <Route
-            path="/child/games/art"
-            element={
-              <GameWrapper>
-                <ArtStudio />
-              </GameWrapper>
-            }
-          />
-          <Route
-            path="/child/games/music"
-            element={
-              <GameWrapper>
-                <MusicMaker />
-              </GameWrapper>
-            }
-          />
-          <Route path="/therapist" element={<TherapistLogin />} />
-          <Route path="/child-info" element={<ChildInfoPage />} />
-          <Route path="/childlist" element={<ChildList />} />
-        </Routes>
-      </Router>
-    </ChildProvider>
+    <Router>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/child" element={<ChildLogin />} />
+        <Route
+          path="/child/games"
+          element={
+            <GameWrapper>
+              <GamesDashboard />
+            </GameWrapper>
+          }
+        />
+        <Route
+          path="/child/games/word-wizard"
+          element={
+            <GameWrapper>
+              <WordWizard />
+            </GameWrapper>
+          }
+        />
+        <Route
+          path="/child/games/hangman"
+          element={
+            <GameWrapper>
+              <Hangman />
+            </GameWrapper>
+          }
+        />
+        <Route
+          path="/child/games/math-safari"
+          element={
+            <GameWrapper>
+              <MathSafari />
+            </GameWrapper>
+          }
+        />
+        <Route
+          path="/child/games/memory"
+          element={
+            <GameWrapper>
+              <MemoryMatch />
+            </GameWrapper>
+          }
+        />
+        <Route
+          path="/child/games/spelling"
+          element={
+            <GameWrapper>
+              <SpellingBee />
+            </GameWrapper>
+          }
+        />
+        <Route
+          path="/child/games/science"
+          element={
+            <GameWrapper>
+              <ScienceQuest />
+            </GameWrapper>
+          }
+        />
+        <Route
+          path="/child/games/puzzle"
+          element={
+            <GameWrapper>
+              <PuzzleWorld />
+            </GameWrapper>
+          }
+        />
+        <Route
+          path="/child/games/reading"
+          element={
+            <GameWrapper>
+              <ReadingRace />
+            </GameWrapper>
+          }
+        />
+        <Route
+          path="/child/games/art"
+          element={
+            <GameWrapper>
+              <ArtStudio />
+            </GameWrapper>
+          }
+        />
+        <Route
+          path="/child/games/music"
+          element={
+            <GameWrapper>
+              <MusicMaker />
+            </GameWrapper>
+          }
+        />
+        <Route path="/therapist" element={<TherapistLogin />} />
+        <Route path="/child-info" element={<ChildInfoPage />} />
+        <Route path="/childlist" element={<ChildList />} />
+      </Routes>
+    </Router>
   );
 }
 
 export default App;
-
