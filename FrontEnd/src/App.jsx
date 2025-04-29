@@ -1,8 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+
+import './App.css';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { ChildProvider } from './context/ChildContext'; 
+import InteractiveElements from './components/InteractiveElements';
+import SelectionPage from './components/SelectionPage';
 import ChildLogin from './components/ChildLogin';
 import TherapistLogin from './components/TherapistLogin';
-import ChildInfoPage from './components/ChildInfoPage';
+import ChildInfoPage from './components/ChildInfoPage'; 
 import GamesDashboard from './components/GamesDashboard';
 import Hangman from './components/games/Hangman';
 import WordWizard from './components/games/WordWizard';
@@ -14,11 +19,7 @@ import PuzzleWorld from './components/games/PuzzleWorld';
 import ReadingRace from './components/games/ReadingRace';
 import ArtStudio from './components/games/ArtStudio';
 import MusicMaker from './components/games/MusicMaker';
-import ChildList from './components/childlist';
-import { FaceMesh } from '@mediapipe/face_mesh';
-import { Camera } from '@mediapipe/camera_utils';
-import './App.css';
-
+import ChildList from './components/childlist'; 
 // -----------------------------
 // BackgroundEmotionDetector Component
 // -----------------------------
@@ -124,21 +125,26 @@ const HomePage = () => {
   const navigate = useNavigate();
 
   const handleGetStarted = () => {
-    navigate('/child');   // ✅ Now navigating to /child instead of missing /select
+    navigate('/select');
   };
 
   return (
     <div className="App">
+      <InteractiveElements />
       <div className="main-container">
         <h1 className="welcome-text">Welcome to Joyverse</h1>
         <p className="subtitle">Your Gateway to Digital Joy</p>
         <button className="get-started-btn" onClick={handleGetStarted}>
           Get Started
         </button>
+       
       </div>
     </div>
   );
 };
+
+
+  
 
 // -----------------------------
 // Handle Emotion Detection API
@@ -191,8 +197,11 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/child" element={<ChildLogin />} />
+      <Route path="/" element={<HomePage />} />
+          <Route path="/select" element={<SelectionPage />} />
+          <Route path="/child" element={<ChildLogin />} />
+          <Route path="/child/games" element={<GamesDashboard />} />
+          <Route path="/therapist" element={<TherapistLogin />} />
         <Route
           path="/child/games"
           element={
@@ -281,7 +290,7 @@ function App() {
             </GameWrapper>
           }
         />
-        <Route path="/therapist" element={<TherapistLogin />} />
+        
         <Route path="/child-info" element={<ChildInfoPage />} />
         <Route path="/childlist" element={<ChildList />} />
       </Routes>
