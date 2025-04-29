@@ -1,149 +1,164 @@
 import os
-import csv
-import collections
-from datetime import datetime
-from typing import List
-
-import numpy as np
+import glob
 import torch
-import torch.nn as nn
 import pandas as pd
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-
-# Define the Transformer Model
-class FaceEmotionTransformer(nn.Module):
-    def __init__(self, input_dim=3, seq_length=468, num_classes=7, embed_dim=128, num_heads=8, num_layers=4):
-        super(FaceEmotionTransformer, self).__init__()
-        self.embedding = nn.Linear(input_dim, embed_dim)
-        encoder_layer = nn.TransformerEncoderLayer(d_model=embed_dim, nhead=num_heads, dropout=0.1)
-        self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
-        self.fc = nn.Linear(embed_dim, num_classes)
-
-    def forward(self, x):
-        x = self.embedding(x)
-        x = x.permute(1, 0, 2)  # Transformer expects (seq_len, batch, embed_dim)
-        x = self.transformer_encoder(x)
-        x = x.mean(dim=0)  # Global average pooling
-        return self.fc(x)
-
-# Pydantic Model for incoming landmark data
-class LandmarkData(BaseModel):
-    landmarks: List[List[float]]
-
-# Initialize FastAPI app
-app = FastAPI()
-
-# Enable CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Setup device and load model
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = FaceEmotionTransformer(num_classes=7).to(device)
-try:
-    print("🔄 Loading model...")
-    model.load_state_dict(torch.load("Emotion_model2000.pth", map_location=device))
-    model.eval()
-    print("✅ Model loaded successfully.")
-except Exception as e:
-    print("❌ Model load failed:", e)
+import time
+import cv2
+from torch.utils.data import Dataset, DataLoader
+from torchvision import transforms
+from transformers import ViTForImageClassification, ViTImageProcessor, Trainer, TrainingArguments
+from PIL import Image
+import evaluate
 
 # Paths
-csv_path = "emotion_changes.csv"
-percentage_file = "emotion_percentages.csv"
+train_dir = r'C:\Users\bannu\OneDrive\Desktop\clone\Facial-Emotion-Recognition\archive\train'
+test_dir = r'C:\Users\bannu\OneDrive\Desktop\clone\Facial-Emotion-Recognition\archive\test'
+model_path = r'C:\Users\bannu\OneDrive\Desktop\clone\fine_tuned_vit_model'
 
-# Ensure CSV file exists
-if not os.path.exists(csv_path):
-    df = pd.DataFrame(columns=["Timestamp", "Emotion"])
-    df.to_csv(csv_path, index=False)
+# Emotion labels
+emotion_labels = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
+label_map = {label: idx for idx, label in enumerate(emotion_labels)}
 
-# Emotion labels mapping
-emotion_labels = {
-    0: "Anger",
-    1: "Disgust",
-    2: "Fear",
-    3: "Happiness",
-    4: "Sadness",
-    5: "Surprise",
-    6: "Neutral",
-}
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("Using device:", device)
 
-# Track last emotion to avoid logging duplicates
-last_emotion = None
+# Image processor
+image_processor = ViTImageProcessor.from_pretrained('google/vit-base-patch16-224')
+transform = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+])
 
-# Function to calculate and save emotion percentages
-def calculate_and_save_percentages():
-    if not os.path.exists(csv_path):
-        print("No emotion data file found.")
-        return
+# Dataset class
+class EmotionDataset(Dataset):
+    def __init__(self, folder, label_map):
+        self.images = []
+        self.labels = []
+        self.label_map = label_map
+        self._load_images_and_labels(folder)
     
-    df = pd.read_csv(csv_path)
+    def _load_images_and_labels(self, folder):
+        for label in self.label_map:
+            label_dir = os.path.join(folder, label)
+            if os.path.isdir(label_dir):
+                img_paths = glob.glob(f"{label_dir}/*.jpg") + glob.glob(f"{label_dir}/*.png") + glob.glob(f"{label_dir}/*.jpeg")
+                self.images.extend(img_paths)
+                self.labels.extend([self.label_map[label]] * len(img_paths))
+    
+    def __len__(self):
+        return len(self.images)
+    
+    def __getitem__(self, idx):
+        img_path = self.images[idx]
+        image = Image.open(img_path).convert('RGB')
+        image = transform(image)
+        label = self.labels[idx]
+        return {'pixel_values': image, 'label': label}
 
-    if df.empty or "Emotion" not in df.columns:
-        print("No emotion data to calculate percentages.")
-        return
+# Load datasets
+train_dataset = EmotionDataset(train_dir, label_map)
+test_dataset = EmotionDataset(test_dir, label_map)
 
-    emotion_counts = df["Emotion"].value_counts()
-    total = emotion_counts.sum()
+# Load or train model
+if os.path.exists(model_path):
+    print("Loading pre-trained model...")
+    model = ViTForImageClassification.from_pretrained(model_path).to(device)
+    image_processor = ViTImageProcessor.from_pretrained(model_path)
+else:
+    print("Training model from scratch...")
+    model = ViTForImageClassification.from_pretrained(
+        'google/vit-base-patch16-224', 
+        num_labels=len(emotion_labels),
+        ignore_mismatched_sizes=True
+    ).to(device)
+    
+    # Training setup
+    training_args = TrainingArguments(
+        output_dir='./results',
+        evaluation_strategy='epoch',
+        save_strategy="epoch",
+        logging_dir='./logs',
+        logging_steps=10,
+        learning_rate=2e-5,
+        per_device_train_batch_size=8,
+        per_device_eval_batch_size=8,
+        num_train_epochs=3,
+        weight_decay=0.01,
+        fp16=torch.cuda.is_available(),  
+    )
+    
+    metric = evaluate.load('accuracy')
+    
+    def compute_metrics(p):
+        return metric.compute(predictions=p.predictions.argmax(-1), references=p.label_ids)
+    
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=train_dataset,
+        eval_dataset=test_dataset,
+        compute_metrics=compute_metrics,
+    )
+    
+    trainer.train()
+    
+    
+    model.save_pretrained(model_path)
+    image_processor.save_pretrained(model_path)
 
-    if total == 0:
-        print("No emotion entries to calculate.")
-        return
+# -------------------------------------------------------------------
+# Real-time Emotion Detection with OpenCV and Logging to CSV
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+model.eval()
+cap = cv2.VideoCapture(0)
 
-    emotion_percentages = (emotion_counts / total * 100).round(2)
+# CSV file setup
+csv_path = "emotion_changes.csv"
+df = pd.DataFrame(columns=["Timestamp", "Emotion"])
+last_emotion = None  
 
-    # Save to CSV
-    perc_df = pd.DataFrame(list(emotion_percentages.items()), columns=["Emotion", "Percentage"])
-    perc_df.to_csv(percentage_file, index=False)
+def preprocess_face(face):
+    """ Preprocess detected face for model inference """
+    face_rgb = cv2.cvtColor(face, cv2.COLOR_GRAY2RGB)
+    face_resized = cv2.resize(face_rgb, (224, 224))
+    face_pil = Image.fromarray(face_resized)
+    inputs = image_processor(images=face_pil, return_tensors='pt')
+    return {k: v.to(device) for k, v in inputs.items()}  # Move to GPU
 
-    print("✅ Emotion percentages saved successfully.")
-
-# API endpoint: Predict Emotion
-@app.post("/predict")
-async def predict_emotion(data: LandmarkData):
-    global last_emotion  # Allow modification of the global last_emotion
-
-    landmarks = np.array(data.landmarks).astype(np.float32)
-    if landmarks.shape != (468, 3):
-        return {"error": "Invalid landmarks shape"}
-
-    input_tensor = torch.tensor(landmarks).unsqueeze(0).to(device)
-    with torch.no_grad():
-        output = model(input_tensor)
-        _, predicted = torch.max(output, 1)
-        emotion = emotion_labels.get(predicted.item(), "Unknown")
-
-    # Only log if emotion has changed
-    if emotion != last_emotion:
-        last_emotion = emotion
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        break
+    
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    faces = face_cascade.detectMultiScale(gray, scaleFactor=1.2, minNeighbors=6, minSize=(40, 40))
+    
+    for (x, y, w, h) in faces:
+        face = gray[y:y+h, x:x+w]  
+        inputs = preprocess_face(face)  
         
-        # Append new row
-        new_row = pd.DataFrame({"Timestamp": [timestamp], "Emotion": [emotion]})
-        new_row.to_csv(csv_path, mode='a', header=False, index=False)
+        with torch.no_grad():
+            outputs = model(**inputs) 
+        logits = outputs.logits
+        predicted_label = logits.argmax(-1).item()
+        emotion = emotion_labels[predicted_label]
+        
+        
+        if emotion != last_emotion:
+            last_emotion = emotion
+            timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
 
-    return {"predicted_emotion": emotion}
+            
+            df = df._append({"Timestamp": timestamp, "Emotion": emotion}, ignore_index=True)
+            df.to_csv(csv_path, index=False)
 
-# API endpoint: Calculate percentages manually if needed
-@app.post("/calculate_percentages")
-async def calculate_percentages():
-    calculate_and_save_percentages()
-    return {"message": "Emotion percentages calculated and saved."}
+    
+        cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+        cv2.putText(frame, emotion, (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+    
+    cv2.imshow('Emotion Recognition', frame)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
 
-# Shutdown event to save percentages on server stop
-@app.on_event("shutdown")
-def shutdown_event():
-    print("🚪 Server is shutting down... calculating final emotion percentages.")
-    calculate_and_save_percentages()
-
-# Run the server
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+cap.release()
+cv2.destroyAllWindows()
