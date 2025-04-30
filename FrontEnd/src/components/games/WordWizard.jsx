@@ -3,15 +3,15 @@ import { motion } from 'framer-motion';
 import './WordWizard.css';
 import { useNavigate } from 'react-router-dom';
 
-// Emotion-to-color mapping based on your API labels
-const emotionColors = {
-  Happiness: '#FFF9C4',   // light yellow
-  Sadness: '#B3E5FC',     // sky blue
-  Anger: '#FFCDD2',       // light red
-  Surprise: '#E1BEE7',    // soft purple
-  Disgust: '#C8E6C9',     // soft green
-  Fear: '#D1C4E9',        // pale lavender
-  Neutral: '#E0E0E0',     // light gray
+// Emotion-to-background mapping
+const emotionBackgrounds = {
+  Happiness: 'https://i.pinimg.com/736x/3c/c2/4c/3cc24c1323758ad3ac771422cca85b16.jpg', // Sunny flowers
+  Sadness: 'https://i.pinimg.com/736x/af/a3/93/afa3935151761fafefe50b3b4cf4e22b.jpg', // Rainy window
+  Anger: 'https://i.pinimg.com/736x/1b/c2/54/1bc254fc6ac4e9bc66c906b8e222c9e5.jpg', // Stormy clouds
+  Surprise: 'https://i.pinimg.com/736x/b5/08/2c/b5082cfb446b91fde276b51692f61f8b.jpg', // Colorful balloons
+  Disgust: 'https://i.pinimg.com/736x/e3/ed/87/e3ed8733e6a1ff0400821e2c829a11bd.jpg', // Dark forest
+  Fear: 'https://i.pinimg.com/736x/86/b6/59/86b659584ccc8d660248fef17e6dad7b.jpg', // Misty forest
+  Neutral: 'https://i.pinimg.com/736x/03/98/cb/0398cbb268528dbad35799ad602128be.jpg', // Calm lake
 };
 
 const WORD_CATEGORIES = {
@@ -71,88 +71,95 @@ const WordWizard = ({ emotion = 'Neutral' }) => {
     navigate('/child/games');
   };
 
-  const backgroundColor = emotionColors[emotion] || '#FFFFFF';
+  const backgroundImage = emotionBackgrounds[emotion] || emotionBackgrounds.Neutral;
 
   return (
-    <div className="word-wizard" style={{ backgroundColor }}>
-      <motion.button
-        className="back-button"
-        onClick={handleBack}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        ← Back to Games
-      </motion.button>
+    <div 
+      className="word-wizard" 
+      style={{ 
+        backgroundImage: `url(${backgroundImage})`,
+      }}
+    >
+      <div className="content-wrapper">
+        <motion.button
+          className="back-button"
+          onClick={handleBack}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          ← Back to Games
+        </motion.button>
 
-      <div className="game-header">
-        <h1>Word Wizard</h1>
-        <div className="game-info">
-          <span className="score">Score: {score}</span>
-          <span className="lives">Lives: {'❤️'.repeat(remainingLives)}</span>
+        <div className="game-header">
+          <h1>Word Wizard</h1>
+          <div className="game-info">
+            <span className="score">Score: {score}</span>
+            <span className="lives">Lives: {'❤️'.repeat(remainingLives)}</span>
+          </div>
         </div>
-      </div>
 
-      <div className="category-selector">
-        {Object.keys(categories).map(cat => (
-          <motion.button
-            key={cat}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className={`category-btn ${category === cat ? 'active' : ''}`}
-            onClick={() => setCategory(cat)}
-          >
-            {cat.charAt(0).toUpperCase() + cat.slice(1)}
-          </motion.button>
-        ))}
-      </div>
+        <div className="category-selector">
+          {Object.keys(categories).map(cat => (
+            <motion.button
+              key={cat}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className={`category-btn ${category === cat ? 'active' : ''}`}
+              onClick={() => setCategory(cat)}
+            >
+              {cat.charAt(0).toUpperCase() + cat.slice(1)}
+            </motion.button>
+          ))}
+        </div>
 
-      <div className="word-display">
-        {word.split('').map((letter, index) => (
+        <div className="word-display">
+          {word.split('').map((letter, index) => (
+            <motion.div
+              key={index}
+              className="letter-box"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              {guessedLetters.has(letter) ? letter : '_'}
+            </motion.div>
+          ))}
+        </div>
+
+        <div className="keyboard">
+          {Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').map((letter) => (
+            <motion.button
+              key={letter}
+              className={`letter-btn ${guessedLetters.has(letter) ? 'used' : ''}`}
+              onClick={() => handleLetterGuess(letter)}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              disabled={guessedLetters.has(letter) || gameStatus !== 'playing'}
+            >
+              {letter}
+            </motion.button>
+          ))}
+        </div>
+
+        {gameStatus !== 'playing' && (
           <motion.div
-            key={index}
-            className="letter-box"
+            className="game-over"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ delay: index * 0.1 }}
           >
-            {guessedLetters.has(letter) ? letter : '_'}
+            <h2>{gameStatus === 'won' ? '🎉 Congratulations!' : '😢 Game Over'}</h2>
+            <p>The word was: {word}</p>
+            <motion.button
+              className="play-again-btn"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={selectNewWord}
+            >
+              Play Again
+            </motion.button>
           </motion.div>
-        ))}
+        )}
       </div>
-
-      <div className="keyboard">
-        {Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').map((letter) => (
-          <motion.button
-            key={letter}
-            className={`letter-btn ${guessedLetters.has(letter) ? 'used' : ''}`}
-            onClick={() => handleLetterGuess(letter)}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            disabled={guessedLetters.has(letter) || gameStatus !== 'playing'}
-          >
-            {letter}
-          </motion.button>
-        ))}
-      </div>
-
-      {gameStatus !== 'playing' && (
-        <motion.div
-          className="game-over"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-        >
-          <h2>{gameStatus === 'won' ? '🎉 Congratulations!' : '😢 Game Over'}</h2>
-          <p>The word was: {word}</p>
-          <motion.button
-            className="play-again-btn"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={selectNewWord}
-          >
-            Play Again
-          </motion.button>
-        </motion.div>
-      )}
     </div>
   );
 };
