@@ -3,23 +3,32 @@ import { motion } from 'framer-motion';
 import './WordWizard.css';
 import { useNavigate } from 'react-router-dom';
 
-// Move categories outside component to prevent recreation on each render
+// Emotion-to-color mapping based on your API labels
+const emotionColors = {
+  Happiness: '#FFF9C4',   // light yellow
+  Sadness: '#B3E5FC',     // sky blue
+  Anger: '#FFCDD2',       // light red
+  Surprise: '#E1BEE7',    // soft purple
+  Disgust: '#C8E6C9',     // soft green
+  Fear: '#D1C4E9',        // pale lavender
+  Neutral: '#E0E0E0',     // light gray
+};
+
 const WORD_CATEGORIES = {
   animals: ['ELEPHANT', 'GIRAFFE', 'PENGUIN', 'DOLPHIN', 'KANGAROO'],
   fruits: ['APPLE', 'BANANA', 'ORANGE', 'MANGO', 'STRAWBERRY'],
   countries: ['FRANCE', 'JAPAN', 'BRAZIL', 'INDIA', 'CANADA']
 };
 
-const WordWizard = () => {
+const WordWizard = ({ emotion = 'Neutral' }) => {
   const navigate = useNavigate();
   const [word, setWord] = useState('');
   const [guessedLetters, setGuessedLetters] = useState(new Set());
   const [remainingLives, setRemainingLives] = useState(6);
-  const [gameStatus, setGameStatus] = useState('playing'); // 'playing', 'won', 'lost'
+  const [gameStatus, setGameStatus] = useState('playing');
   const [score, setScore] = useState(0);
   const [category, setCategory] = useState('animals');
 
-  // Memoize the categories if they need to be transformed or filtered
   const categories = useMemo(() => WORD_CATEGORIES, []);
 
   const selectNewWord = useCallback(() => {
@@ -46,7 +55,6 @@ const WordWizard = () => {
       setRemainingLives(lives => lives - 1);
     }
 
-    // Check win/lose conditions
     checkGameStatus(newGuessedLetters);
   };
 
@@ -63,8 +71,10 @@ const WordWizard = () => {
     navigate('/child/games');
   };
 
+  const backgroundColor = emotionColors[emotion] || '#FFFFFF';
+
   return (
-    <div className="word-wizard">
+    <div className="word-wizard" style={{ backgroundColor }}>
       <motion.button
         className="back-button"
         onClick={handleBack}
@@ -73,6 +83,7 @@ const WordWizard = () => {
       >
         ← Back to Games
       </motion.button>
+
       <div className="game-header">
         <h1>Word Wizard</h1>
         <div className="game-info">
@@ -146,4 +157,4 @@ const WordWizard = () => {
   );
 };
 
-export default WordWizard; 
+export default WordWizard;
