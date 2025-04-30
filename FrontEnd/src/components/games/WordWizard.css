@@ -1,9 +1,48 @@
 .word-wizard {
-  max-width: 800px;
-  margin: 0 auto;
+  min-height: 100vh;
   padding: 2rem;
-  text-align: center;
+  position: relative;
+  background: transparent;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
+
+.content-wrapper {
+  background: rgba(255, 255, 255, 0.1); /* semi-transparent */
+  backdrop-filter: blur(10px);          /* adds blur effect */
+  -webkit-backdrop-filter: blur(10px);  /* Safari support */
+  border-radius: 20px;
+  padding: 2rem;
+  width: 80%;
+  max-width: 700px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  position: relative;
+  margin: auto;
+}
+
+.word-wizard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.3);
+  z-index: 1;
+}
+
+/* Rest of your existing styles remain the same */
+
+.word-wizard > * {
+  position: relative;
+  z-index: 2;
+}
+
 
 .game-header {
   margin-bottom: 2rem;
@@ -63,29 +102,45 @@
   font-weight: bold;
   background: white;
 }
+/* ... existing styles ... */
 
 .keyboard {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
-  gap: 0.5rem;
-  margin-bottom: 2rem;
+  grid-template-rows: repeat(3, 1fr);
+  grid-template-columns: repeat(9, 1fr);
+  gap: 0.8rem;
+  margin: 2rem auto;
+  max-width: 600px;
+  padding: 1rem;
 }
 
 .letter-btn {
+  aspect-ratio: 1;
   padding: 0.5rem;
   border: none;
   border-radius: 8px;
   background: #3498db;
   color: white;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 1.2rem;
+  font-weight: bold;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.letter-btn:hover:not(.used) {
+  background: #2980b9;
+  transform: translateY(-2px);
 }
 
 .letter-btn.used {
   background: #bdc3c7;
   cursor: not-allowed;
+  opacity: 0.7;
 }
+
 
 .game-over {
   position: fixed;
@@ -126,18 +181,20 @@
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
+
 @media (max-width: 768px) {
-  .word-wizard {
-    padding: 1rem;
+  .keyboard {
+    grid-template-columns: repeat(9, 1fr);
+    gap: 0.4rem;
+    padding: 0.5rem;
   }
 
-  .letter-box {
-    width: 30px;
-    height: 30px;
-    font-size: 1.2rem;
+  .letter-btn {
+    font-size: 1rem;
+    padding: 0.3rem;
   }
+}
 
   .keyboard {
     grid-template-columns: repeat(auto-fit, minmax(30px, 1fr));
   }
-} 
