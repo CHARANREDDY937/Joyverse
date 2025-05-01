@@ -6,6 +6,7 @@ import {
   useNavigate,
   useLocation
 } from 'react-router-dom';
+
 import InteractiveElements from './components/InteractiveElements';
 import SelectionPage from './components/SelectionPage';
 import ChildLogin from './components/ChildLogin';
@@ -138,7 +139,9 @@ const HomePage = () => {
 
   return (
     <div className="App">
+      <InteractiveElements />
       <div className="main-container">
+        
         <h1 className="welcome-text">Welcome to Joyverse</h1>
         <p className="subtitle">Your Gateway to Digital Joy</p>
         <button className="get-started-btn" onClick={handleGetStarted}>
