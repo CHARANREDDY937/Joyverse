@@ -27,6 +27,7 @@ const MathSafari = () => {
   const [feedback, setFeedback] = useState(null);
   const [streak, setStreak] = useState(0);
   const [currentAnimal, setCurrentAnimal] = useState('elephant');
+  const [error, setError] = useState(null);
 
   const generateProblem = useCallback(() => {
     const { max, operations } = DIFFICULTY_LEVELS[level];
@@ -63,8 +64,28 @@ const MathSafari = () => {
     setFeedback(null);
   }, [level]);
 
+  // Initialize game and clear emotions log
   useEffect(() => {
-    generateProblem();
+    const initializeGame = async () => {
+      // Clear previous emotions log on backend
+      try {
+        const response = await fetch('http://localhost:8000/clear_emotions_log', {
+          method: 'POST',
+        });
+        const data = await response.json();
+        if (data.status !== 'success') {
+          setError('Failed to clear emotions log: ' + data.message);
+        } else {
+          setError(null);
+        }
+      } catch (error) {
+        setError('Error clearing emotions log: ' + error.message);
+      }
+
+      generateProblem();
+    };
+
+    initializeGame();
   }, [generateProblem]);
 
   const handleSubmit = (e) => {
@@ -109,6 +130,16 @@ const MathSafari = () => {
           <span className="streak">Streak: {streak} 🔥</span>
         </div>
       </div>
+
+      {error && (
+        <motion.p
+          className="error-message"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          {error}
+        </motion.p>
+      )}
 
       <div className="difficulty-selector">
         {Object.keys(DIFFICULTY_LEVELS).map((diff) => (
@@ -173,4 +204,4 @@ const MathSafari = () => {
   );
 };
 
-export default MathSafari; 
+export default MathSafari;

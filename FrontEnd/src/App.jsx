@@ -38,13 +38,13 @@ const BackgroundEmotionDetector = ({ isActive, onStopGame }) => {
 
   useEffect(() => {
     if (typeof window !== 'undefined' && videoRef.current && isActive) {
+      console.log('Starting BackgroundEmotionDetector');
       const videoElement = videoRef.current;
 
       const faceMesh = new FaceMesh({
         locateFile: (file) =>
           `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
       });
-
       faceMesh.setOptions({
         maxNumFaces: 1,
         refineLandmarks: true,
@@ -91,6 +91,10 @@ const BackgroundEmotionDetector = ({ isActive, onStopGame }) => {
           })
             .then((res) => res.json())
             .then((data) => {
+              if (data.status === 'paused') {
+                console.log('Emotion logging paused, skipping prediction');
+                return;
+              }
               const predictedEmotion = data.predicted_emotion || data.emotion;
               console.log('🎯 Predicted emotion:', predictedEmotion);
 
@@ -103,12 +107,14 @@ const BackgroundEmotionDetector = ({ isActive, onStopGame }) => {
       }, 5000);
 
       return () => {
+        console.log('Stopping BackgroundEmotionDetector');
         clearInterval(intervalRef.current);
         if (cameraRef.current) {
           cameraRef.current.stop();
         }
       };
     } else if (cameraRef.current) {
+      console.log('Stopping BackgroundEmotionDetector (inactive)');
       clearInterval(intervalRef.current);
       cameraRef.current.stop();
       cameraRef.current = null;
@@ -156,7 +162,8 @@ const GameWrapper = ({ children }) => {
   const location = useLocation();
   const [emotion, setEmotion] = useState(null);
 
-  const isGameRoute = location.pathname.startsWith('/child/games/');
+  // Only enable emotion detection for specific game routes, not the dashboard
+  const isGameRoute = location.pathname.startsWith('/child/games/') && location.pathname !== '/child/games';
 
   const handleEmotionDetected = (emotion) => {
     setEmotion(emotion);

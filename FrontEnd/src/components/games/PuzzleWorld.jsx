@@ -50,6 +50,20 @@ const PuzzleWorld = () => {
   }, [currentPuzzle.size]);
 
   const initializePuzzle = useCallback(() => {
+    // Clear previous emotions log on backend
+    fetch('http://localhost:8000/clear_emotions_log', {
+      method: 'POST',
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status !== 'success') {
+          console.error('Failed to clear emotions log:', data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Error clearing emotions log:', error);
+      });
+
     const shuffleTiles = (tiles) => {
       const shuffled = [...tiles];
       let currentIndex = shuffled.length;
@@ -59,15 +73,16 @@ const PuzzleWorld = () => {
         currentIndex--;
 
         [shuffled[currentIndex], shuffled[randomIndex]] = 
-        [shuffled[randomIndex], shuffled[currentIndex]];
+          [shuffled[randomIndex], shuffled[currentIndex]];
       }
 
       // Ensure puzzle is solvable
       if (!isSolvable(shuffled)) {
-        // Swap last two tiles if puzzle is not solvable
         const lastIndex = shuffled.length - 1;
-        [shuffled[lastIndex - 1], shuffled[lastIndex - 2]] = 
-        [shuffled[lastIndex - 2], shuffled[lastIndex - 1]];
+        if (lastIndex >= 2) {
+          [shuffled[lastIndex - 1], shuffled[lastIndex - 2]] = 
+            [shuffled[lastIndex - 2], shuffled[lastIndex - 1]];
+        }
       }
 
       return shuffled;
@@ -85,7 +100,7 @@ const PuzzleWorld = () => {
 
   useEffect(() => {
     initializePuzzle();
-  }, [initializePuzzle]);
+  }, [currentPuzzle, initializePuzzle]); // Added currentPuzzle to dependencies
 
   const handleTileClick = (index) => {
     if (isComplete) return;
@@ -199,4 +214,4 @@ const PuzzleWorld = () => {
   );
 };
 
-export default PuzzleWorld; 
+export default PuzzleWorld;

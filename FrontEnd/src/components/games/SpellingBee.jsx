@@ -36,6 +36,7 @@ const SpellingBee = () => {
   const [streak, setStreak] = useState(0);
   const [showHint, setShowHint] = useState(false);
   const [feedback, setFeedback] = useState(null);
+  const [error, setError] = useState(null);
 
   const selectNewWord = useCallback(() => {
     const words = WORD_LISTS[level];
@@ -73,6 +74,58 @@ const SpellingBee = () => {
     }
   };
 
+  const resetGame = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/clear_emotions_log', {
+        method: 'POST',
+      });
+      const data = await response.json();
+      if (data.status !== 'success') {
+        setError('Failed to clear emotions log: ' + data.message);
+      } else {
+        setError(null);
+      }
+    } catch (error) {
+      setError('Error clearing emotions log: ' + error.message);
+    }
+
+    setScore(0);
+    setStreak(0);
+    setLevel('easy');
+    setUserInput('');
+    setShowHint(false);
+    setFeedback(null);
+    selectNewWord();
+  };
+
+  // Initialize game and clear emotions log on mount
+  useEffect(() => {
+    const initializeGame = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/clear_emotions_log', {
+          method: 'POST',
+        });
+        const data = await response.json();
+        if (data.status !== 'success') {
+          setError('Failed to clear emotions log: ' + data.message);
+        } else {
+          setError(null);
+        }
+      } catch (error) {
+        setError('Error clearing emotions log: ' + error.message);
+      }
+    };
+
+    initializeGame();
+
+    // Cleanup: Signal external emotion detection system to stop logging (if applicable)
+    return () => {
+      // Note: Add logic here to stop external emotion detection (e.g., webcam) if controlled by the app.
+      // Currently, we assume the external system stops when the game unmounts.
+      console.log('SpellingBee unmounted: Emotion logging should stop.');
+    };
+  }, []);
+
   return (
     <div className="spelling-bee">
       <motion.button
@@ -89,8 +142,26 @@ const SpellingBee = () => {
         <div className="game-info">
           <span className="score">Score: {score}</span>
           <span className="streak">Streak: {streak} 🔥</span>
+          <motion.button
+            className="reset-btn"
+            onClick={resetGame}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Reset
+          </motion.button>
         </div>
       </div>
+
+      {error && (
+        <motion.p
+          className="error-message"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          {error}
+        </motion.p>
+      )}
 
       <div className="level-selector">
         {Object.keys(WORD_LISTS).map((lvl) => (
@@ -175,4 +246,4 @@ const SpellingBee = () => {
   );
 };
 
-export default SpellingBee; 
+export default SpellingBee;

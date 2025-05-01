@@ -21,13 +21,25 @@ const MemoryMatch = () => {
   const [matchedPairs, setMatchedPairs] = useState([]);
   const [moves, setMoves] = useState(0);
   const [score, setScore] = useState(0);
+  const [error, setError] = useState(null);
 
   // Initialize game
-  useEffect(() => {
-    initializeGame();
-  }, []);
+  const initializeGame = async () => {
+    // Clear previous emotions log on backend
+    try {
+      const response = await fetch('http://localhost:8000/clear_emotions_log', {
+        method: 'POST',
+      });
+      const data = await response.json();
+      if (data.status !== 'success') {
+        setError('Failed to clear emotions log: ' + data.message);
+      } else {
+        setError(null);
+      }
+    } catch (error) {
+      setError('Error clearing emotions log: ' + error.message);
+    }
 
-  const initializeGame = () => {
     // Create pairs of cards and shuffle them
     const shuffledCards = [...CARD_PAIRS, ...CARD_PAIRS]
       .sort(() => Math.random() - 0.5)
@@ -42,6 +54,11 @@ const MemoryMatch = () => {
     setMoves(0);
     setScore(0);
   };
+
+  // UseEffect to initialize game
+  useEffect(() => {
+    initializeGame();
+  }, []);
 
   const handleCardClick = (clickedCard) => {
     // Prevent clicking if two cards are already flipped
@@ -93,8 +110,21 @@ const MemoryMatch = () => {
         <div className="game-info">
           <span className="moves">Moves: {moves}</span>
           <span className="score">Score: {score}</span>
+          <button className="reset-btn" onClick={initializeGame}>
+            Reset Game
+          </button>
         </div>
       </div>
+
+      {error && (
+        <motion.p
+          className="error-message"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          {error}
+        </motion.p>
+      )}
 
       <motion.div 
         className="game-board"
@@ -144,4 +174,4 @@ const MemoryMatch = () => {
   );
 };
 
-export default MemoryMatch; 
+export default MemoryMatch;

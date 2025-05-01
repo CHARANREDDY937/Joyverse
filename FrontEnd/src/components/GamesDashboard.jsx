@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import './GamesDashboard.css';
 
-const GamesDashboard = () => {
+const GamesDashboard = ({ emotion }) => {
   const navigate = useNavigate();
 
   const games = [
@@ -63,7 +63,21 @@ const GamesDashboard = () => {
     }
   ];
 
-  const handleGameClick = (path) => {
+  const handleGameClick = async (path) => {
+    try {
+      console.log('Resuming emotion logging...');
+      const response = await fetch('http://localhost:8000/resume_emotion_logging', {
+        method: 'POST',
+      });
+      const data = await response.json();
+      if (data.status !== 'success') {
+        console.error('Failed to resume emotion logging:', data.message);
+      } else {
+        console.log('Emotion logging resumed');
+      }
+    } catch (error) {
+      console.error('Error resuming emotion logging:', error);
+    }
     navigate(path);
   };
 
@@ -117,4 +131,4 @@ const GamesDashboard = () => {
   );
 };
 
-export default GamesDashboard; 
+export default GamesDashboard;

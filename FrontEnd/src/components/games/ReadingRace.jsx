@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import './ReadingRace.css';
@@ -132,6 +132,7 @@ const ReadingRace = () => {
   const [readingStartTime, setReadingStartTime] = useState(null);
   const [readingTime, setReadingTime] = useState(null);
   const [wordsPerMinute, setWordsPerMinute] = useState(null);
+  const [error, setError] = useState(null);
 
   const currentStory = STORIES[level][currentStoryIndex];
 
@@ -177,8 +178,61 @@ const ReadingRace = () => {
       setCurrentStoryIndex(prev => prev + 1);
       setShowQuestions(false);
       startReading();
+    } else {
+      // Optionally reset to first story or show a completion message
+      setCurrentStoryIndex(0);
+      setShowQuestions(false);
+      startReading();
     }
   };
+
+  const resetGame = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/clear_emotions_log', {
+        method: 'POST',
+      });
+      const data = await response.json();
+      if (data.status !== 'success') {
+        setError('Failed to clear emotions log: ' + data.message);
+      } else {
+        setError(null);
+      }
+    } catch (error) {
+      setError('Error clearing emotions log: ' + error.message);
+    }
+
+    setScore(0);
+    setCurrentStoryIndex(0);
+    setLevel('beginner');
+    setShowQuestions(false);
+    setAnswers({});
+    setReadingTime(null);
+    setWordsPerMinute(null);
+    startReading();
+  };
+
+  // Initialize game and clear emotions log on mount
+  useEffect(() => {
+    const initializeGame = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/clear_emotions_log', {
+          method: 'POST',
+        });
+        const data = await response.json();
+        if (data.status !== 'success') {
+          setError('Failed to clear emotions log: ' + data.message);
+        } else {
+          setError(null);
+        }
+      } catch (error) {
+        setError('Error clearing emotions log: ' + error.message);
+      }
+
+      startReading();
+    };
+
+    initializeGame();
+  }, [startReading]);
 
   return (
     <div className="reading-race">
@@ -201,8 +255,26 @@ const ReadingRace = () => {
               <span className="speed">Speed: {wordsPerMinute} WPM</span>
             </>
           )}
+          <motion.button
+            className="reset-btn"
+            onClick={resetGame}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Reset
+          </motion.button>
         </div>
       </div>
+
+      {error && (
+        <motion.p
+          className="error-message"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          {error}
+        </motion.p>
+      )}
 
       <div className="level-selector">
         {Object.keys(STORIES).map((lvl) => (
@@ -278,4 +350,4 @@ const ReadingRace = () => {
   );
 };
 
-export default ReadingRace; 
+export default ReadingRace;

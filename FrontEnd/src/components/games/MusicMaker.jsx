@@ -27,16 +27,45 @@ const MusicMaker = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [tempo, setTempo] = useState(120);
   const [drumPattern, setDrumPattern] = useState('rock');
+  const [error, setError] = useState(null);
+  const [toneStarted, setToneStarted] = useState(false);
 
+  // Initialize game and clear emotions log
   useEffect(() => {
-    // Initialize Tone.js
-    Tone.start();
+    const initializeGame = async () => {
+      // Clear previous emotions log on backend
+      try {
+        const response = await fetch('http://localhost:8000/clear_emotions_log', {
+          method: 'POST',
+        });
+        const data = await response.json();
+        if (data.status !== 'success') {
+          setError('Failed to clear emotions log: ' + data.message);
+        } else {
+          setError(null);
+        }
+      } catch (error) {
+        setError('Error clearing emotions log: ' + error.message);
+      }
+    };
+
+    initializeGame();
+
     return () => {
       Tone.Transport.stop();
     };
   }, []);
 
+  // Start Tone.js on user interaction
+  const startTone = async () => {
+    if (!toneStarted) {
+      await Tone.start();
+      setToneStarted(true);
+    }
+  };
+
   const playNote = (note) => {
+    if (!toneStarted) return; // Prevent playing before Tone.js is started
     INSTRUMENTS[selectedInstrument].triggerAttackRelease(note, '8n');
     if (isRecording) {
       setRecording(prev => [...prev, { note, instrument: selectedInstrument, time: Tone.now() }]);
@@ -44,6 +73,7 @@ const MusicMaker = () => {
   };
 
   const startRecording = () => {
+    if (!toneStarted) return;
     setIsRecording(true);
     setRecording([]);
   };
@@ -53,16 +83,17 @@ const MusicMaker = () => {
   };
 
   const playRecording = () => {
-    if (recording.length === 0) return;
+    if (!toneStarted || recording.length === 0) return;
     
     const now = Tone.now();
-    recording.forEach(({ note, instrument, time }, i) => {
+    recording.forEach(({ note, instrument, time }) => {
       const adjustedTime = now + (time - recording[0].time);
       INSTRUMENTS[instrument].triggerAttackRelease(note, '8n', adjustedTime);
     });
   };
 
   const toggleDrumBeat = () => {
+    if (!toneStarted) return;
     if (isPlaying) {
       Tone.Transport.stop();
       setIsPlaying(false);
@@ -82,8 +113,32 @@ const MusicMaker = () => {
     }
   };
 
+  const resetGame = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/clear_emotions_log', {
+        method: 'POST',
+      });
+      const data = await response.json();
+      if (data.status !== 'success') {
+        setError('Failed to clear emotions log: ' + data.message);
+      } else {
+        setError(null);
+      }
+    } catch (error) {
+      setError('Error clearing emotions log: ' + error.message);
+    }
+
+    setRecording([]);
+    setIsRecording(false);
+    setIsPlaying(false);
+    Tone.Transport.stop();
+    setSelectedInstrument('piano');
+    setDrumPattern('rock');
+    setTempo(120);
+  };
+
   return (
-    <div className="music-maker">
+    <div className="music-maker" onClick={startTone}>
       <motion.button
         className="back-button"
         onClick={() => navigate('/child/games')}
@@ -95,7 +150,25 @@ const MusicMaker = () => {
 
       <div className="music-header">
         <h1>Music Maker</h1>
+        <motion.button
+          className="reset-btn"
+          onClick={resetGame}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          Reset
+        </motion.button>
       </div>
+
+      {error && (
+        <motion.p
+          className="error-message"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          {error}
+        </motion.p>
+      )}
 
       <div className="music-workspace">
         <div className="controls">
@@ -194,4 +267,4 @@ const MusicMaker = () => {
   );
 };
 
-export default MusicMaker; 
+export default MusicMaker;
