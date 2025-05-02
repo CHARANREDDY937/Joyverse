@@ -1,17 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react';
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  useNavigate,
-  useLocation
-} from 'react-router-dom';
+import './App.css';
+import React, { useRef, useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { ChildProvider } from './context/ChildContext'; 
+import { FaceMesh } from '@mediapipe/face_mesh';
+import { Camera } from '@mediapipe/camera_utils';
 
 import InteractiveElements from './components/InteractiveElements';
 import SelectionPage from './components/SelectionPage';
 import ChildLogin from './components/ChildLogin';
 import TherapistLogin from './components/TherapistLogin';
-import ChildInfoPage from './components/ChildInfoPage';
+import ChildInfoPage from './components/ChildInfoPage'; 
 import GamesDashboard from './components/GamesDashboard';
 import Hangman from './components/games/Hangman';
 import WordWizard from './components/games/WordWizard';
@@ -24,12 +22,9 @@ import ReadingRace from './components/games/ReadingRace';
 import ArtStudio from './components/games/ArtStudio';
 import MusicMaker from './components/games/MusicMaker';
 import ChildList from './components/childlist';
-import { FaceMesh } from '@mediapipe/face_mesh';
-import { Camera } from '@mediapipe/camera_utils';
-import './App.css';
 
 // -----------------------------
-// BackgroundEmotionDetector Component
+// Background Emotion Detector
 // -----------------------------
 const BackgroundEmotionDetector = ({ isActive, onStopGame }) => {
   const videoRef = useRef(null);
@@ -39,12 +34,10 @@ const BackgroundEmotionDetector = ({ isActive, onStopGame }) => {
 
   useEffect(() => {
     if (typeof window !== 'undefined' && videoRef.current && isActive) {
-      console.log('Starting BackgroundEmotionDetector');
       const videoElement = videoRef.current;
 
       const faceMesh = new FaceMesh({
-        locateFile: (file) =>
-          `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
       });
       faceMesh.setOptions({
         maxNumFaces: 1,
@@ -54,26 +47,15 @@ const BackgroundEmotionDetector = ({ isActive, onStopGame }) => {
       });
 
       faceMesh.onResults((results) => {
-        if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+        if (results.multiFaceLandmarks?.length > 0) {
           const landmarks = results.multiFaceLandmarks[0];
-          const landmarkData = landmarks.slice(0, 468).map((pt) => [pt.x, pt.y, pt.z]);
-
-          if (
-            Array.isArray(landmarkData) &&
-            landmarkData.length === 468 &&
-            landmarkData.every((pt) => Array.isArray(pt) && pt.length === 3)
-          ) {
-            capturedLandmarks.current = landmarkData;
-          } else {
-            console.warn('❌ Invalid landmark data structure');
-          }
+          const landmarkData = landmarks.map((pt) => [pt.x, pt.y, pt.z]);
+          capturedLandmarks.current = landmarkData;
         }
       });
 
       const camera = new Camera(videoElement, {
-        onFrame: async () => {
-          await faceMesh.send({ image: videoElement });
-        },
+        onFrame: async () => await faceMesh.send({ image: videoElement }),
         width: 640,
         height: 480,
       });
@@ -85,40 +67,22 @@ const BackgroundEmotionDetector = ({ isActive, onStopGame }) => {
         if (capturedLandmarks.current) {
           fetch('http://localhost:8000/predict', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ landmarks: capturedLandmarks.current }),
           })
             .then((res) => res.json())
             .then((data) => {
-              if (data.status === 'paused') {
-                console.log('Emotion logging paused, skipping prediction');
-                return;
-              }
-              const predictedEmotion = data.predicted_emotion || data.emotion;
-              console.log('🎯 Predicted emotion:', predictedEmotion);
-
-              if (predictedEmotion) {
-                onStopGame(predictedEmotion);
-              }
+              const emotion = data.predicted_emotion || data.emotion;
+              if (emotion) onStopGame(emotion);
             })
-            .catch((err) => console.error('❌ Prediction error:', err));
+            .catch((err) => console.error('Emotion detection error:', err));
         }
       }, 5000);
 
       return () => {
-        console.log('Stopping BackgroundEmotionDetector');
         clearInterval(intervalRef.current);
-        if (cameraRef.current) {
-          cameraRef.current.stop();
-        }
+        camera?.stop();
       };
-    } else if (cameraRef.current) {
-      console.log('Stopping BackgroundEmotionDetector (inactive)');
-      clearInterval(intervalRef.current);
-      cameraRef.current.stop();
-      cameraRef.current = null;
     }
   }, [isActive, onStopGame]);
 
@@ -134,57 +98,20 @@ const BackgroundEmotionDetector = ({ isActive, onStopGame }) => {
 };
 
 // -----------------------------
-// HomePage Component
-// -----------------------------
-const HomePage = () => {
-  const navigate = useNavigate();
-
-  const handleGetStarted = () => {
-    navigate('/SelectionPage');
-  };
-
-  return (
-    <div className="App">
-      <InteractiveElements />
-      <div className="main-container">
-        
-        <h1 className="welcome-text">Welcome to Joyverse</h1>
-        <p className="subtitle">Your Gateway to Digital Joy</p>
-        <button className="get-started-btn" onClick={handleGetStarted}>
-          Get Started
-        </button>
-      </div>
-    </div>
-  );
-};
-
-// -----------------------------
 // GameWrapper Component
 // -----------------------------
 const GameWrapper = ({ children }) => {
   const location = useLocation();
   const [emotion, setEmotion] = useState(null);
-
-  // Only enable emotion detection for specific game routes, not the dashboard
-  const isGameRoute = location.pathname.startsWith('/child/games/') && location.pathname !== '/child/games';
+  const isGameRoute = location.pathname.startsWith('/child/games') && location.pathname !== '/child/games';
 
   const handleEmotionDetected = (emotion) => {
     setEmotion(emotion);
-
     fetch('http://localhost:5005/api/game/next-level', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ emotion }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        console.log('🎯 Next Level Data:', data);
-      })
-      .catch((err) => {
-        console.error('❌ Error calling next-level API:', err);
-      });
+    }).catch((err) => console.error('Error calling next-level API:', err));
   };
 
   return (
@@ -198,45 +125,54 @@ const GameWrapper = ({ children }) => {
 };
 
 // -----------------------------
-// Main App Component
+// HomePage Component
+// -----------------------------
+const HomePage = () => {
+  const navigate = useNavigate();
+  return (
+    <div className="App">
+      <InteractiveElements />
+      <div className="main-container">
+        <h1 className="welcome-text">Welcome to Joyverse</h1>
+        <p className="subtitle">Your Gateway to Digital Joy</p>
+        <button className="get-started-btn" onClick={() => navigate('/select')}>
+          Get Started
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// -----------------------------
+// App Component with Routes
 // -----------------------------
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/SelectionPage" element={<SelectionPage />} />
-        <Route path="/child" element={<ChildLogin />} />
-        <Route path="/therapist" element={<TherapistLogin />} />
-        <Route
-          path="/child/games"
-          element={
-            <GameWrapper>
-              <GamesDashboard />
-            </GameWrapper>
-          }
-        />
-        <Route
-          path="/child/games/word-wizard"
-          element={
-            <GameWrapper>
-              <WordWizard />
-            </GameWrapper>
-          }
-        />
-        <Route path="/child/games/hangman" element={<GameWrapper><Hangman /></GameWrapper>} />
-        <Route path="/child/games/math-safari" element={<GameWrapper><MathSafari /></GameWrapper>} />
-        <Route path="/child/games/memory" element={<GameWrapper><MemoryMatch /></GameWrapper>} />
-        <Route path="/child/games/spelling" element={<GameWrapper><SpellingBee /></GameWrapper>} />
-        <Route path="/child/games/science" element={<GameWrapper><ScienceQuest /></GameWrapper>} />
-        <Route path="/child/games/puzzle" element={<GameWrapper><PuzzleWorld /></GameWrapper>} />
-        <Route path="/child/games/reading" element={<GameWrapper><ReadingRace /></GameWrapper>} />
-        <Route path="/child/games/art" element={<GameWrapper><ArtStudio /></GameWrapper>} />
-        <Route path="/child/games/music" element={<GameWrapper><MusicMaker /></GameWrapper>} />
-        <Route path="/child-info" element={<ChildInfoPage />} />
-        <Route path="/childlist" element={<ChildList />} />
-      </Routes>
-    </Router>
+    <ChildProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/select" element={<SelectionPage />} />
+          <Route path="/child" element={<ChildLogin />} />
+          <Route path="/therapist" element={<TherapistLogin />} />
+          <Route path="/child-info" element={<ChildInfoPage />} />
+          <Route path="/childlist" element={<ChildList />} />
+
+          {/* Games with Emotion Detection */}
+          <Route path="/child/games" element={<GameWrapper><GamesDashboard /></GameWrapper>} />
+          <Route path="/child/games/word-wizard" element={<GameWrapper><WordWizard /></GameWrapper>} />
+          <Route path="/child/games/hangman" element={<GameWrapper><Hangman /></GameWrapper>} />
+          <Route path="/child/games/math-safari" element={<GameWrapper><MathSafari /></GameWrapper>} />
+          <Route path="/child/games/memory" element={<GameWrapper><MemoryMatch /></GameWrapper>} />
+          <Route path="/child/games/spelling" element={<GameWrapper><SpellingBee /></GameWrapper>} />
+          <Route path="/child/games/science" element={<GameWrapper><ScienceQuest /></GameWrapper>} />
+          <Route path="/child/games/puzzle" element={<GameWrapper><PuzzleWorld /></GameWrapper>} />
+          <Route path="/child/games/reading" element={<GameWrapper><ReadingRace /></GameWrapper>} />
+          <Route path="/child/games/art" element={<GameWrapper><ArtStudio /></GameWrapper>} />
+          <Route path="/child/games/music" element={<GameWrapper><MusicMaker /></GameWrapper>} />
+        </Routes>
+      </Router>
+    </ChildProvider>
   );
 }
 
