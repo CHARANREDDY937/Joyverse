@@ -99,11 +99,12 @@ app = FastAPI(lifespan=lifespan)
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # ✔️ Good for dev. Use specific origins in production.
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # API endpoint: Predict Emotion
 @app.post("/predict")

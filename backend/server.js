@@ -205,7 +205,9 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-require('dotenv').config(); // Load environment variables from .env
+const axios = require('axios'); // Ensure axios is installed using npm i axios
+require('dotenv').config({ path: __dirname + '/.env' });
+const themes = require("./themes");
 
 const app = express();
 
@@ -287,16 +289,70 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Fetch All Users Route
-app.get('/api/users', async (req, res) => {
+// app.post('/api/predict-emotion', async (req, res) => {
+//   try {
+//     const landmarks = req.body.landmarks;
+//     if (!Array.isArray(landmarks) || landmarks.length !== 468) {
+//       return res.status(400).json({ error: "Invalid landmark data" });
+//     }
+
+//     const fastApiUrl = "http://127.0.0.1:8000/predict";
+
+//     const response = await fetch(fastApiUrl, {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({ landmarks }),
+//     });
+
+//     if (!response.ok) {
+//       throw new Error(`FastAPI error: ${response.status}`);
+//     }
+
+//     const prediction = await response.json();
+
+//     // ✅ Log the prediction received from FastAPI
+//     console.log("🎯 Prediction from FastAPI:", prediction);
+
+//     // Send the prediction to frontend
+//     res.status(200).json(prediction);
+//   } catch (error) {
+//     console.error("❌ Error calling FastAPI:", error.message);
+//     res.status(500).json({ error: "Failed to get emotion prediction" });
+//   }
+// });
+app.post('/api/predict-emotion', async (req, res) => {
   try {
-    const users = await User.find(); // Get all users
-    res.json(users);
+    const landmarks = req.body.landmarks;
+    if (!Array.isArray(landmarks) || landmarks.length !== 468) {
+      return res.status(400).json({ error: "Invalid landmark data" });
+    }
+
+    const fastApiUrl = "http://127.0.0.1:8000/predict";
+
+    const response = await fetch(fastApiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ landmarks }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`FastAPI error: ${response.status}`);
+    }
+
+    const { predicted_emotion } = await response.json();
+    const themeUrl = themes[predicted_emotion] || themes["Neutral"];
+
+    console.log("🎯 Emotion:", predicted_emotion);
+    console.log("🎨 Theme URL:", themeUrl);
+
+    // Return both emotion and theme image URL to frontend
+    res.status(200).json({ emotion: predicted_emotion, theme: themeUrl });
   } catch (error) {
-    console.error('❌ Error fetching users:', error);
-    res.status(500).json({ message: 'Error fetching user data' });
+    console.error("❌ Error calling FastAPI:", error.message);
+    res.status(500).json({ error: "Failed to get emotion prediction" });
   }
 });
+
 
 // Start Server
 const PORT = process.env.PORT || 5000;

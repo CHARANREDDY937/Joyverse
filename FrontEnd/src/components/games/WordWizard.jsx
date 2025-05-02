@@ -3,24 +3,13 @@ import { motion } from 'framer-motion';
 import './WordWizard.css';
 import { useNavigate } from 'react-router-dom';
 
-// Emotion-to-background mapping
-const emotionBackgrounds = {
-  Happiness: 'https://i.pinimg.com/736x/3c/c2/4c/3cc24c1323758ad3ac771422cca85b16.jpg', // Sunny flowers
-  Sadness: 'https://i.pinimg.com/736x/af/a3/93/afa3935151761fafefe50b3b4cf4e22b.jpg', // Rainy window
-  Anger: 'https://i.pinimg.com/736x/1b/c2/54/1bc254fc6ac4e9bc66c906b8e222c9e5.jpg', // Stormy clouds
-  Surprise: 'https://i.pinimg.com/736x/b5/08/2c/b5082cfb446b91fde276b51692f61f8b.jpg', // Colorful balloons
-  Disgust: 'https://i.pinimg.com/736x/e3/ed/87/e3ed8733e6a1ff0400821e2c829a11bd.jpg', // Dark forest
-  Fear: 'https://i.pinimg.com/736x/86/b6/59/86b659584ccc8d660248fef17e6dad7b.jpg', // Misty forest
-  Neutral: 'https://i.pinimg.com/736x/03/98/cb/0398cbb268528dbad35799ad602128be.jpg', // Calm lake
-};
-
 const WORD_CATEGORIES = {
   animals: ['ELEPHANT', 'GIRAFFE', 'PENGUIN', 'DOLPHIN', 'KANGAROO'],
   fruits: ['APPLE', 'BANANA', 'ORANGE', 'MANGO', 'STRAWBERRY'],
   countries: ['FRANCE', 'JAPAN', 'BRAZIL', 'INDIA', 'CANADA']
 };
 
-const WordWizard = ({ emotion = 'Neutral' }) => {
+const WordWizard = () => {
   const navigate = useNavigate();
   const [word, setWord] = useState('');
   const [guessedLetters, setGuessedLetters] = useState(new Set());
@@ -71,14 +60,10 @@ const WordWizard = ({ emotion = 'Neutral' }) => {
     navigate('/child/games');
   };
 
-  const backgroundImage = emotionBackgrounds[emotion] || emotionBackgrounds.Neutral;
-
   return (
-    <div 
-      className="word-wizard" 
-      style={{ 
-        backgroundImage: `url(${backgroundImage})`,
-      }}
+    <div
+      id="game-background"
+      className="word-wizard"
     >
       <div className="content-wrapper">
         <motion.button
@@ -89,7 +74,7 @@ const WordWizard = ({ emotion = 'Neutral' }) => {
         >
           ← Back to Games
         </motion.button>
-
+  
         <div className="game-header">
           <h1>Word Wizard</h1>
           <div className="game-info">
@@ -97,7 +82,7 @@ const WordWizard = ({ emotion = 'Neutral' }) => {
             <span className="lives">Lives: {'❤️'.repeat(remainingLives)}</span>
           </div>
         </div>
-
+  
         <div className="category-selector">
           {Object.keys(categories).map(cat => (
             <motion.button
@@ -111,7 +96,7 @@ const WordWizard = ({ emotion = 'Neutral' }) => {
             </motion.button>
           ))}
         </div>
-
+  
         <div className="word-display">
           {word.split('').map((letter, index) => (
             <motion.div
@@ -125,7 +110,7 @@ const WordWizard = ({ emotion = 'Neutral' }) => {
             </motion.div>
           ))}
         </div>
-
+  
         <div className="keyboard">
           {Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').map((letter) => (
             <motion.button
@@ -140,7 +125,7 @@ const WordWizard = ({ emotion = 'Neutral' }) => {
             </motion.button>
           ))}
         </div>
-
+  
         {gameStatus !== 'playing' && (
           <motion.div
             className="game-over"
@@ -162,6 +147,7 @@ const WordWizard = ({ emotion = 'Neutral' }) => {
       </div>
     </div>
   );
+  
 };
 
 export default WordWizard;
