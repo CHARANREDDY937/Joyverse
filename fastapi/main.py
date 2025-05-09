@@ -186,14 +186,6 @@ class FaceEmotionTransformer(nn.Module):
 class LandmarkData(BaseModel):
     landmarks: List[List[float]]
 
-<<<<<<< HEAD
-=======
-# File paths
-emotions_log_file = "emotions_log.csv"
-emotions_percentages_file = "emotions_percentages.csv"
-logging_enabled = True
-
->>>>>>> 51717b948ab3b7d9569c179edaf8dc2911af9fb8
 # Emotion labels mapping
 emotion_labels = {
     0: "Anger",
@@ -216,29 +208,11 @@ try:
 except Exception as e:
     print("❌ Model load failed:", e)
 
-<<<<<<< HEAD
-=======
-# Prepare emotions_log.csv if it doesn't exist
-if not os.path.exists(emotions_log_file):
-    with open(emotions_log_file, "w", newline="") as file:
-        writer = csv.writer(file)
-        writer.writerow(["timestamp", "emotion"])
-
-# Prepare emotions_percentages.csv if it doesn't exist
-if not os.path.exists(emotions_percentages_file):
-    with open(emotions_percentages_file, "w", newline="") as file:
-        writer = csv.writer(file)
-        writer.writerow(["timestamp", "emotion", "percentage"])  # Updated headers
-
->>>>>>> 51717b948ab3b7d9569c179edaf8dc2911af9fb8
 # Lifespan context
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     yield
-<<<<<<< HEAD
     # Shutdown logic here
-=======
->>>>>>> 51717b948ab3b7d9569c179edaf8dc2911af9fb8
     print("🚪 Server is shutting down...")
 
 # Initialize FastAPI app
@@ -247,11 +221,7 @@ app = FastAPI(lifespan=lifespan)
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
-<<<<<<< HEAD
     allow_origins=["*"],  # ✔️ Good for dev. Use specific origins in production.
-=======
-    allow_origins=["http://localhost:5173"],
->>>>>>> 51717b948ab3b7d9569c179edaf8dc2911af9fb8
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -270,124 +240,8 @@ async def predict_emotion(data: LandmarkData):
         _, predicted = torch.max(output, 1)
         emotion = emotion_labels.get(predicted.item(), "Unknown")
 
-<<<<<<< HEAD
     return {"predicted_emotion": emotion}
 
-=======
-    with open(emotions_log_file, "a", newline="") as file:
-        writer = csv.writer(file)
-        writer.writerow([datetime.now().isoformat(), emotion])
-
-    logger.debug(f"Emotion predicted: {emotion}")
-    return {"predicted_emotion": emotion}
-
-# API endpoint: Get overall emotion percentages
-@app.get("/emotion_percentages")
-async def get_emotion_percentages():
-    if not os.path.exists(emotions_log_file):
-        logger.error("Emotion log file not found")
-        return {"error": "Emotion log file not found"}
-
-    try:
-        df = pd.read_csv(emotions_log_file, names=["timestamp", "emotion"], skiprows=1)
-        logger.debug(f"CSV loaded with {len(df)} rows")
-        
-        valid_emotions = list(emotion_labels.values())
-        df = df[df['emotion'].isin(valid_emotions)]
-        logger.debug(f"Filtered to {len(df)} valid emotion rows")
-
-        emotion_counts = df['emotion'].value_counts()
-        total_predictions = len(df)
-
-        if total_predictions == 0:
-            logger.warning("No valid emotion data available")
-            return {"error": "No valid emotion data available"}
-
-        emotion_percentages = (emotion_counts / total_predictions) * 100
-        percentages = {emotion: f"{percent:.2f}%" for emotion, percent in emotion_percentages.to_dict().items()}
-        logger.debug(f"Emotion percentages calculated: {percentages}")
-        return {"emotion_percentages": percentages}
-    except Exception as e:
-        logger.error(f"Error reading emotion log file: {e}")
-        return {"error": f"Error reading emotion log file: {str(e)}"}
-
-# API endpoint: Append emotion percentages to CSV
-@app.post("/append_emotion_percentages")
-async def append_emotion_percentages():
-    if not os.path.exists(emotions_log_file):
-        logger.error("Emotion log file not found")
-        return {"error": "Emotion log file not found"}
-
-    try:
-        df = pd.read_csv(emotions_log_file, names=["timestamp", "emotion"], skiprows=1)
-        logger.debug(f"CSV loaded with {len(df)} rows")
-        
-        valid_emotions = list(emotion_labels.values())
-        df = df[df['emotion'].isin(valid_emotions)]
-        logger.debug(f"Filtered to {len(df)} valid emotion rows")
-
-        emotion_counts = df['emotion'].value_counts()
-        total_predictions = len(df)
-
-        if total_predictions == 0:
-            logger.warning("No valid emotion data to append")
-            return {"error": "No valid emotion data to append"}
-
-        emotion_percentages = (emotion_counts / total_predictions) * 100
-        percentages = {emotion: f"{percent:.2f}%" for emotion, percent in emotion_percentages.to_dict().items()}
-        logger.debug(f"Appending percentages to CSV: {percentages}")
-
-        # Append to emotions_percentages.csv with timestamp
-        with open(emotions_percentages_file, "a", newline="") as file:
-            writer = csv.writer(file)
-            timestamp = datetime.now().isoformat()
-            writer.writerow([])  # Blank line
-            writer.writerow(["Summary", timestamp])  # Header with timestamp
-            for emotion, percentage in percentages.items():
-                writer.writerow([timestamp, emotion, percentage])
-
-        logger.debug("Emotion percentages appended to CSV")
-        return {"status": "success", "message": "Emotion percentages appended to CSV"}
-    except Exception as e:
-        logger.error(f"Error appending emotion percentages: {e}")
-        return {"error": f"Error appending emotion percentages: {str(e)}"}
-
-# API endpoint: Clear both emotions_log.csv and emotions_percentages.csv
-@app.post("/clear_emotions_log")
-async def clear_emotions_log():
-    try:
-        with open(emotions_log_file, "w", newline="") as file:
-            writer = csv.writer(file)
-            writer.writerow(["timestamp", "emotion"])
-        logger.debug("Emotions log cleared")
-
-        with open(emotions_percentages_file, "w", newline="") as file:
-            writer = csv.writer(file)
-            writer.writerow(["timestamp", "emotion", "percentage"])
-        logger.debug("Emotions percentages log cleared")
-
-        return {"status": "success", "message": "Both emotions log and percentages cleared"}
-    except Exception as e:
-        logger.error(f"Failed to clear logs: {e}")
-        return {"status": "error", "message": str(e)}
-
-# API endpoint: Pause emotion logging
-@app.post("/pause_emotion_logging")
-async def pause_emotion_logging():
-    global logging_enabled
-    logging_enabled = False
-    logger.debug("Emotion logging paused")
-    return {"status": "success", "message": "Emotion logging paused"}
-
-# API endpoint: Resume emotion logging
-@app.post("/resume_emotion_logging")
-async def resume_emotion_logging():
-    global logging_enabled
-    logging_enabled = True
-    logger.debug("Emotion logging resumed")
-    return {"status": "success", "message": "Emotion logging resumed"}
-
->>>>>>> 51717b948ab3b7d9569c179edaf8dc2911af9fb8
 # Run the server
 if __name__ == "__main__":
     import uvicorn
