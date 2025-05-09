@@ -24,12 +24,24 @@ const PUZZLES = [
   }
 ];
 
-const PuzzleWorld = () => {
+// Emotion-to-background mapping (same as WordWizard, MathSafari, and MemoryMatch)
+const emotionBackgrounds = {
+  Happiness: 'https://i.pinimg.com/736x/3c/c2/4c/3cc24c1323758ad3ac771422cca85b16.jpg',
+  Sadness: 'https://i.pinimg.com/736x/af/a3/93/afa3935151761fafefe50b3b4cf4e22b.jpg',
+  Anger: 'https://i.pinimg.com/736x/1b/c2/54/1bc254fc6ac4e9bc66c906b8e222c9e5.jpg',
+  Surprise: 'https://i.pinimg.com/736x/b5/08/2c/b5082cfb446b91fde276b51692f61f8b.jpg',
+  Disgust: 'https://i.pinimg.com/736x/e3/ed/87/e3ed8733e6a1ff0400821e2c829a11bd.jpg',
+  Fear: 'https://i.pinimg.com/736x/86/b6/59/86b659584ccc8d660248fef17e6dad7b.jpg',
+  Neutral: 'https://i.pinimg.com/736x/03/98/cb/0398cbb268528dbad35799ad602128be.jpg',
+};
+
+const PuzzleWorld = ({ emotion = 'Neutral' }) => {
   const navigate = useNavigate();
   const [currentPuzzle, setCurrentPuzzle] = useState(PUZZLES[0]);
   const [tiles, setTiles] = useState([]);
   const [moves, setMoves] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  const [error, setError] = useState(null);
 
   const isSolvable = useCallback((tiles) => {
     let inversions = 0;
@@ -50,18 +62,20 @@ const PuzzleWorld = () => {
   }, [currentPuzzle.size]);
 
   const initializePuzzle = useCallback(() => {
-    // Clear previous emotions log on backend
+    // Clear emotions logs on backend
     fetch('http://localhost:8000/clear_emotions_log', {
       method: 'POST',
     })
       .then(response => response.json())
       .then(data => {
         if (data.status !== 'success') {
-          console.error('Failed to clear emotions log:', data.message);
+          setError('Failed to clear emotions and percentages logs: ' + data.message);
+        } else {
+          setError(null);
         }
       })
       .catch(error => {
-        console.error('Error clearing emotions log:', error);
+        setError('Error clearing emotions and percentages logs: ' + error.message);
       });
 
     const shuffleTiles = (tiles) => {
@@ -76,7 +90,6 @@ const PuzzleWorld = () => {
           [shuffled[randomIndex], shuffled[currentIndex]];
       }
 
-      // Ensure puzzle is solvable
       if (!isSolvable(shuffled)) {
         const lastIndex = shuffled.length - 1;
         if (lastIndex >= 2) {
@@ -98,9 +111,32 @@ const PuzzleWorld = () => {
     setIsComplete(false);
   }, [currentPuzzle, isSolvable]);
 
+  // Append emotion percentages
+  const appendEmotionPercentages = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/append_emotion_percentages', {
+        method: 'POST',
+      });
+      const data = await response.json();
+      if (data.status !== 'success') {
+        setError('Failed to append emotion percentages: ' + data.message);
+      } else {
+        setError(null);
+      }
+    } catch (error) {
+      setError('Error appending emotion percentages: ' + error.message);
+    }
+  };
+
   useEffect(() => {
     initializePuzzle();
-  }, [currentPuzzle, initializePuzzle]); // Added currentPuzzle to dependencies
+
+    // Cleanup: Append percentages when component unmounts
+    return () => {
+      appendEmotionPercentages();
+      console.log('PuzzleWorld unmounted: Emotion percentages appended.');
+    };
+  }, [currentPuzzle, initializePuzzle]);
 
   const handleTileClick = (index) => {
     if (isComplete) return;
@@ -108,7 +144,6 @@ const PuzzleWorld = () => {
     const size = currentPuzzle.size;
     const emptyIndex = tiles.indexOf(null);
     
-    // Check if clicked tile is adjacent to empty space
     const isAdjacent = (
       (Math.abs(index - emptyIndex) === 1 && Math.floor(index / size) === Math.floor(emptyIndex / size)) ||
       Math.abs(index - emptyIndex) === size
@@ -120,7 +155,6 @@ const PuzzleWorld = () => {
       setTiles(newTiles);
       setMoves(moves + 1);
 
-      // Check if puzzle is complete
       const isComplete = newTiles.every((tile, index) => 
         tile === null ? index === newTiles.length - 1 : tile === index + 1
       );
@@ -128,11 +162,24 @@ const PuzzleWorld = () => {
     }
   };
 
+  const handleBack = async () => {
+    // Append percentages before navigating away
+    await appendEmotionPercentages();
+    navigate('/child/games');
+  };
+
+  const backgroundImage = emotionBackgrounds[emotion] || emotionBackgrounds.Neutral;
+
   return (
-    <div className="puzzle-world">
+    <div 
+      className="puzzle-world" 
+      style={{ 
+        backgroundImage: `url(${backgroundImage})`,
+      }}
+    >
       <motion.button
         className="back-button"
-        onClick={() => navigate('/child/games')}
+        onClick={handleBack}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >
@@ -143,11 +190,26 @@ const PuzzleWorld = () => {
         <h1>Puzzle World</h1>
         <div className="game-info">
           <span className="moves">Moves: {moves}</span>
-          <button className="reset-btn" onClick={initializePuzzle}>
+          <motion.button
+            className="reset-btn"
+            onClick={initializePuzzle}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
             Reset Puzzle
-          </button>
+          </motion.button>
         </div>
       </div>
+
+      {error && (
+        <motion.p
+          className="error-message"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          {error}
+        </motion.p>
+      )}
 
       <div className="puzzle-selector">
         {PUZZLES.map(puzzle => (
