@@ -83,27 +83,36 @@ const BackgroundEmotionDetector = ({ isActive, onStopGame }) => {
 
       intervalRef.current = setInterval(() => {
         if (capturedLandmarks.current) {
-          fetch('http://localhost:8000/predict', {
+          fetch('http://localhost:5000/api/predict-emotion', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ landmarks: capturedLandmarks.current }),
           })
             .then((res) => res.json())
             .then((data) => {
-              if (data.status === 'paused') {
-                console.log('Emotion logging paused, skipping prediction');
-                return;
-              }
-              const predictedEmotion = data.predicted_emotion || data.emotion;
+              const predictedEmotion = data.emotion;
+              const themeUrl = data.theme;
+      
               console.log('🎯 Predicted emotion:', predictedEmotion);
-
+              console.log('🎨 Theme URL:', themeUrl);
+      
+              // 🎯 Set game background if it's visible
+              const gameBg = document.getElementById('game-background');
+              if (gameBg && themeUrl) {
+                gameBg.style.backgroundImage = `url(${themeUrl})`;
+                // gameBg.style.backgroundSize = 'cover';
+                // gameBg.style.backgroundPosition = 'center';
+                // gameBg.style.transition = 'background-image 0.5s ease-in-out';
+              }
+      
               if (predictedEmotion) {
+                // onEmotionDetected(predictedEmotion);
                 onStopGame(predictedEmotion);
               }
             })
-            .catch((err) => console.error('❌ Prediction error:', err));
+            .catch((err) =>
+              console.error(' Prediction error:', err)
+            );
         }
       }, 5000);
 

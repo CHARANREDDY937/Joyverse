@@ -14,21 +14,69 @@ const ChildLogin = () => {
   });
   const [error, setError] = useState(null);
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setError(null);
+
+  //   try {
+  //     const url = isLogin
+  //       ? 'http://localhost:5000/api/login'
+  //       : 'http://localhost:5000/api/signup';
+
+  //     const payload = {
+  //       username: formData.username,
+  //       password: formData.password,
+  //     };
+
+  //     // Add confirmPassword and name if it's a signup request
+  //     if (!isLogin) {
+  //       if (formData.password !== formData.confirmPassword) {
+  //         return setError('Passwords do not match');
+  //       }
+  //       payload.confirmPassword = formData.confirmPassword;
+  //       payload.name = formData.name;
+  //     }
+
+  //     const response = await fetch(url, {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify(payload),
+  //     });
+
+  //     const data = await response.json();
+
+  //     if (response.ok) {
+  //       if (isLogin) {
+  //         // Log the login event to MongoDB
+  //         await fetch('http://localhost:5000/api/login', {
+  //           method: 'POST',
+  //           headers: { 'Content-Type': 'application/json' },
+  //           body: JSON.stringify({ username: formData.username }),
+  //         });
+  //       }
+  //       navigate('/child/games'); // Login or signup success
+  //     } else {
+  //       setError(data.message || 'An error occurred');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error during API call:', error);
+  //     setError('Failed to connect to server');
+  //   }
+  // };
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-
+  
     try {
       const url = isLogin
         ? 'http://localhost:5000/api/login'
         : 'http://localhost:5000/api/signup';
-
+  
       const payload = {
         username: formData.username,
         password: formData.password,
       };
-
-      // Add confirmPassword and name if it's a signup request
+  
       if (!isLogin) {
         if (formData.password !== formData.confirmPassword) {
           return setError('Passwords do not match');
@@ -36,25 +84,30 @@ const ChildLogin = () => {
         payload.confirmPassword = formData.confirmPassword;
         payload.name = formData.name;
       }
-
+  
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-
+  
       const data = await response.json();
-
+  
       if (response.ok) {
+        // ✅ Store username in localStorage
+        localStorage.setItem('childUserId', formData.username);
+  
         if (isLogin) {
-          // Log the login event to MongoDB
+          // Optional: Log login event again (this is already done above)
           await fetch('http://localhost:5000/api/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username: formData.username }),
           });
         }
-        navigate('/child/games'); // Login or signup success
+  
+        // ✅ Navigate to game page
+        navigate('/child/games');
       } else {
         setError(data.message || 'An error occurred');
       }
@@ -63,6 +116,8 @@ const ChildLogin = () => {
       setError('Failed to connect to server');
     }
   };
+  
+  
 
   const handleChange = (e) => {
     setFormData({
