@@ -240,6 +240,7 @@ async def predict_emotion(data: LandmarkData):
         _, predicted = torch.max(output, 1)
         emotion = emotion_labels.get(predicted.item(), "Unknown")
 
+    print(emotion)
     return {"predicted_emotion": emotion}
 
 # Run the server
