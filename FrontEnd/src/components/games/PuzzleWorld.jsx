@@ -3,104 +3,118 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import './PuzzleWorld.css';
 
-const PUZZLES = [
-  {
-    id: 1,
-    name: 'Forest Friends',
-    image: 'https://i.pinimg.com/736x/88/95/7b/88957bd3d472ea7e417f92a9b24f0cbb.jpg',
-    size: 3 // 3x3 grid
-  },
-  {
-    id: 2,
-    name: 'Ocean Adventure',
-    image: 'https://i.pinimg.com/736x/d8/bb/c8/d8bbc8635fbdaafdce23e3a3306a3f84.jpg',
-    size: 3
-  },
-  {
-    id: 3,
-    name: 'Space Journey',
-    image: 'https://i.pinimg.com/736x/a3/c6/e0/a3c6e0e88875cadaea284c8524f8d989.jpg',
-    size: 3
-  }
-];
+const PUZZLE_IMAGES = {
+  easy: [
+    'https://images.pexels.com/photos/3608263/pexels-photo-3608263.jpeg',
+    'https://images.pexels.com/photos/3608542/pexels-photo-3608542.jpeg',
+    'https://images.pexels.com/photos/2253275/pexels-photo-2253275.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    'https://images.pexels.com/photos/57416/cat-sweet-kitty-animals-57416.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    'https://images.pexels.com/photos/1166473/pexels-photo-1166473.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    'https://images.pexels.com/photos/31467787/pexels-photo-31467787/free-photo-of-giant-teddy-bear-relaxing-on-park-bench-in-garden.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    'https://images.pexels.com/photos/31877265/pexels-photo-31877265/free-photo-of-eastern-chipmunk-in-natural-habitat.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    'https://images.pexels.com/photos/5806696/pexels-photo-5806696.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    'https://images.pexels.com/photos/462118/pexels-photo-462118.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'
+  ],
+  medium: [
+   'https://images.pexels.com/photos/60597/dahlia-red-blossom-bloom-60597.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    'https://images.pexels.com/photos/15580060/pexels-photo-15580060/free-photo-of-deer-fawns-on-meadow.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    'https://images.pexels.com/photos/10895596/pexels-photo-10895596.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    'https://images.pexels.com/photos/4001296/pexels-photo-4001296.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    'https://images.pexels.com/photos/30942994/pexels-photo-30942994/free-photo-of-vibrant-monarch-butterfly-on-orange-zinnia-flower.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    'https://images.pexels.com/photos/878560/pexels-photo-878560.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    'https://images.pexels.com/photos/36762/scarlet-honeyeater-bird-red-feathers.jpg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    'https://images.pexels.com/photos/108370/pexels-photo-108370.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    'https://images.pexels.com/photos/19036120/pexels-photo-19036120/free-photo-of-delicious-healthy-fruits.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    'https://images.pexels.com/photos/830829/pexels-photo-830829.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+  ],
+  hard: [
+    'https://images.pexels.com/photos/994605/pexels-photo-994605.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    'https://images.pexels.com/photos/1033729/pexels-photo-1033729.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    'https://images.pexels.com/photos/139099/pexels-photo-139099.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    'https://images.pexels.com/photos/337909/pexels-photo-337909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    'https://images.pexels.com/photos/2196587/pexels-photo-2196587.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    'https://images.pexels.com/photos/97533/pexels-photo-97533.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    'https://images.pexels.com/photos/1133957/pexels-photo-1133957.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    'https://images.pexels.com/photos/236599/pexels-photo-236599.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    'https://images.pexels.com/photos/30705791/pexels-photo-30705791/free-photo-of-zebra-grazing-in-maasai-mara-national-reserve.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
+    'https://images.pexels.com/photos/458976/pexels-photo-458976.jpeg'
+  ]
+};
+
+const LEVELS = {
+  easy: Array.from({ length: 10 }, (_, i) => ({
+    id: i + 1,
+    size: 3,
+    image: PUZZLE_IMAGES.easy[i]
+  })),
+  medium: Array.from({ length: 10 }, (_, i) => ({
+    id: i + 1,
+    size: 4,
+    image: PUZZLE_IMAGES.medium[i]
+  })),
+  hard: Array.from({ length: 10 }, (_, i) => ({
+    id: i + 1,
+    size: 5,
+    image: PUZZLE_IMAGES.hard[i]
+  }))
+};
 
 const PuzzleWorld = () => {
   const navigate = useNavigate();
-  const [currentPuzzle, setCurrentPuzzle] = useState(PUZZLES[0]);
+  const [currentLevel, setCurrentLevel] = useState('easy');
+  const [imageIndex, setImageIndex] = useState(0);
   const [tiles, setTiles] = useState([]);
   const [moves, setMoves] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  const [gameStarted, setGameStarted] = useState(false);
+  const [bestMoves, setBestMoves] = useState({});
 
-  const isSolvable = useCallback((tiles) => {
+  const currentPuzzle = LEVELS[currentLevel][imageIndex];
+
+  const isSolvable = (tiles, size) => {
     let inversions = 0;
-    const size = currentPuzzle.size;
-
-    for (let i = 0; i < tiles.length - 1; i++) {
-      if (!tiles[i]) continue;
-      for (let j = i + 1; j < tiles.length; j++) {
-        if (!tiles[j]) continue;
-        if (tiles[i] > tiles[j]) inversions++;
+    const flatTiles = [...tiles];
+    
+    for (let i = 0; i < flatTiles.length - 1; i++) {
+      if (!flatTiles[i]) continue;
+      for (let j = i + 1; j < flatTiles.length; j++) {
+        if (!flatTiles[j]) continue;
+        if (flatTiles[i] > flatTiles[j]) inversions++;
       }
     }
 
-    const emptyRowFromBottom = Math.floor(tiles.indexOf(null) / size);
+    const emptyRowFromBottom = Math.floor(flatTiles.indexOf(null) / size);
     return (size % 2 === 1) ? 
       (inversions % 2 === 0) : 
       ((inversions + emptyRowFromBottom) % 2 === 0);
+  };
+
+  const shuffleTiles = useCallback(() => {
+    const size = currentPuzzle.size * currentPuzzle.size;
+    let shuffled;
+    do {
+      shuffled = Array.from({ length: size - 1 }, (_, i) => i + 1);
+      shuffled.push(null);
+      
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+    } while (!isSolvable(shuffled, currentPuzzle.size));
+    
+    return shuffled;
   }, [currentPuzzle.size]);
 
   const initializePuzzle = useCallback(() => {
-    // Clear previous emotions log on backend
-    fetch('http://localhost:8000/clear_emotions_log', {
-      method: 'POST',
-    })
-      .then(response => response.json())
-      .then(data => {
-        if (data.status !== 'success') {
-          console.error('Failed to clear emotions log:', data.message);
-        }
-      })
-      .catch(error => {
-        console.error('Error clearing emotions log:', error);
-      });
-
-    const shuffleTiles = (tiles) => {
-      const shuffled = [...tiles];
-      let currentIndex = shuffled.length;
-
-      while (currentIndex !== 0) {
-        const randomIndex = Math.floor(Math.random() * currentIndex);
-        currentIndex--;
-
-        [shuffled[currentIndex], shuffled[randomIndex]] = 
-          [shuffled[randomIndex], shuffled[currentIndex]];
-      }
-
-      // Ensure puzzle is solvable
-      if (!isSolvable(shuffled)) {
-        const lastIndex = shuffled.length - 1;
-        if (lastIndex >= 2) {
-          [shuffled[lastIndex - 1], shuffled[lastIndex - 2]] = 
-            [shuffled[lastIndex - 2], shuffled[lastIndex - 1]];
-        }
-      }
-
-      return shuffled;
-    };
-
-    const size = currentPuzzle.size * currentPuzzle.size;
-    const newTiles = Array.from({ length: size - 1 }, (_, i) => i + 1);
-    newTiles.push(null); // Empty tile
-    
-    const shuffledTiles = shuffleTiles(newTiles);
-    setTiles(shuffledTiles);
+    setTiles(shuffleTiles());
     setMoves(0);
     setIsComplete(false);
-  }, [currentPuzzle, isSolvable]);
+  }, [shuffleTiles]);
 
   useEffect(() => {
     initializePuzzle();
-  }, [currentPuzzle, initializePuzzle]); // Added currentPuzzle to dependencies
+  }, [initializePuzzle, currentPuzzle]);
 
   const handleTileClick = (index) => {
     if (isComplete) return;
@@ -108,7 +122,6 @@ const PuzzleWorld = () => {
     const size = currentPuzzle.size;
     const emptyIndex = tiles.indexOf(null);
     
-    // Check if clicked tile is adjacent to empty space
     const isAdjacent = (
       (Math.abs(index - emptyIndex) === 1 && Math.floor(index / size) === Math.floor(emptyIndex / size)) ||
       Math.abs(index - emptyIndex) === size
@@ -120,54 +133,112 @@ const PuzzleWorld = () => {
       setTiles(newTiles);
       setMoves(moves + 1);
 
-      // Check if puzzle is complete
-      const isComplete = newTiles.every((tile, index) => 
+      const completed = newTiles.every((tile, index) => 
         tile === null ? index === newTiles.length - 1 : tile === index + 1
       );
-      setIsComplete(isComplete);
+
+      if (completed) {
+        const puzzleKey = `${currentLevel}-${imageIndex}`;
+        const currentBest = bestMoves[puzzleKey] || Infinity;
+        if (moves < currentBest) {
+          setBestMoves(prev => ({ ...prev, [puzzleKey]: moves }));
+        }
+        setIsComplete(true);
+      }
     }
   };
 
-  return (
-    <div className="puzzle-world">
-      <motion.button
-        className="back-button"
-        onClick={() => navigate('/child/games')}
-        whileHover={{ scale: 1.05 }}
+  const handleNextPuzzle = () => {
+    if (imageIndex < LEVELS[currentLevel].length - 1) {
+      setImageIndex(prev => prev + 1);
+    } else {
+      if (currentLevel === 'easy') {
+        setCurrentLevel('medium');
+      } else if (currentLevel === 'medium') {
+        setCurrentLevel('hard');
+      } else {
+        alert('🎉 Congratulations! You completed all levels!');
+        setGameStarted(false);
+        return;
+      }
+      setImageIndex(0);
+    }
+    initializePuzzle();
+  };
+
+  const InstructionsScreen = () => (
+    <div className="instructions-screen">
+      <motion.button 
+        className="back-button" 
+        onClick={() => navigate('/child/games')} 
         whileTap={{ scale: 0.95 }}
       >
         ← Back to Games
       </motion.button>
 
-      <div className="game-header">
+      <div className="instructions-content">
         <h1>Puzzle World</h1>
-        <div className="game-info">
-          <span className="moves">Moves: {moves}</span>
-          <button className="reset-btn" onClick={initializePuzzle}>
-            Reset Puzzle
-          </button>
+        <h2>How to Play</h2>
+        <div className="instruction-steps">
+          <div className="step">
+            <div className="step-number">1</div>
+            <p>Click tiles next to the empty space to move them</p>
+          </div>
+          <div className="step">
+            <div className="step-number">2</div>
+            <p>Arrange tiles in numerical order</p>
+          </div>
+          <div className="step">
+            <div className="step-number">3</div>
+            <p>Complete the image puzzle</p>
+          </div>
+          <div className="step">
+            <div className="step-number">4</div>
+            <p>Progress through Easy, Medium, and Hard levels</p>
+          </div>
         </div>
+        <motion.button 
+          className="start-game-btn" 
+          onClick={() => setGameStarted(true)} 
+          whileTap={{ scale: 0.95 }}
+        >
+          Start Playing
+        </motion.button>
       </div>
+    </div>
+  );
 
-      <div className="puzzle-selector">
-        {PUZZLES.map(puzzle => (
-          <motion.button
-            key={puzzle.id}
-            className={`puzzle-btn ${currentPuzzle.id === puzzle.id ? 'active' : ''}`}
-            onClick={() => setCurrentPuzzle(puzzle)}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            {puzzle.name}
-          </motion.button>
-        ))}
+  const GameScreen = () => (
+    <div className="puzzle-world">
+      <motion.button 
+        className="back-button" 
+        onClick={() => setGameStarted(false)} 
+        whileTap={{ scale: 0.95 }}
+      >
+        ← Back to Instructions
+      </motion.button>
+
+      <div className="game-header">
+        <h1>Puzzle World - {currentLevel.charAt(0).toUpperCase() + currentLevel.slice(1)} Level</h1>
+        <div className="game-stats">
+          <p>Puzzle: {imageIndex + 1}/{LEVELS[currentLevel].length}</p>
+          <p>Moves: {moves}</p>
+          <p>Best: {bestMoves[`${currentLevel}-${imageIndex}`] || '-'}</p>
+        </div>
+        <motion.button 
+          className="reset-btn" 
+          onClick={initializePuzzle} 
+          whileTap={{ scale: 0.95 }}
+        >
+          Reset Puzzle
+        </motion.button>
       </div>
 
       <motion.div 
         className="puzzle-container"
         style={{ '--grid-size': currentPuzzle.size }}
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
       >
         {tiles.map((tile, index) => (
           <motion.div
@@ -179,8 +250,8 @@ const PuzzleWorld = () => {
             style={{
               backgroundImage: tile ? `url(${currentPuzzle.image})` : 'none',
               backgroundSize: `${currentPuzzle.size * 100}%`,
-              backgroundPosition: tile ? 
-                `${((tile - 1) % currentPuzzle.size) * -100}% ${Math.floor((tile - 1) / currentPuzzle.size) * -100}%` 
+              backgroundPosition: tile
+                ? `${((tile - 1) % currentPuzzle.size) * -100}% ${Math.floor((tile - 1) / currentPuzzle.size) * -100}%`
                 : 'center'
             }}
           >
@@ -191,19 +262,18 @@ const PuzzleWorld = () => {
 
       {isComplete && (
         <motion.div 
-          className="victory-screen"
-          initial={{ scale: 0 }}
+          className="victory-screen" 
+          initial={{ scale: 0 }} 
           animate={{ scale: 1 }}
         >
-          <h2>Congratulations! 🎉</h2>
+          <h2>🎉 Great job!</h2>
           <p>You solved the puzzle in {moves} moves!</p>
+          {bestMoves[`${currentLevel}-${imageIndex}`] === moves && (
+            <p>🏆 New Best Score!</p>
+          )}
           <motion.button
             className="next-puzzle-btn"
-            onClick={() => {
-              const nextIndex = (PUZZLES.indexOf(currentPuzzle) + 1) % PUZZLES.length;
-              setCurrentPuzzle(PUZZLES[nextIndex]);
-            }}
-            whileHover={{ scale: 1.05 }}
+            onClick={handleNextPuzzle}
             whileTap={{ scale: 0.95 }}
           >
             Next Puzzle
@@ -212,6 +282,8 @@ const PuzzleWorld = () => {
       )}
     </div>
   );
+
+  return gameStarted ? <GameScreen /> : <InstructionsScreen />;
 };
 
 export default PuzzleWorld;
