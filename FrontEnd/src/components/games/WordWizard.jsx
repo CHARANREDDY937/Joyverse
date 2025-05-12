@@ -4,17 +4,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import './WordWizard.css';
 import { useNavigate } from 'react-router-dom';
 
+// Emotion-to-background mapping
 const emotionBackgrounds = {
-  Happiness: 'https://i.pinimg.com/736x/3c/c2/4c/3cc24c1323758ad3ac771422cca85b16.jpg',
-  Sadness: 'https://i.pinimg.com/736x/af/a3/93/afa3935151761fafefe50b3b4cf4e22b.jpg',
-  Anger: 'https://i.pinimg.com/736x/1b/c2/54/1bc254fc6ac4e9bc66c906b8e222c9e5.jpg',
-  Surprise: 'https://i.pinimg.com/736x/b5/08/2c/b5082cfb446b91fde276b51692f61f8b.jpg',
-  Disgust: 'https://i.pinimg.com/736x/e3/ed/87/e3ed8733e6a1ff0400821e2c829a11bd.jpg',
-  Fear: 'https://i.pinimg.com/736x/86/b6/59/86b659584ccc8d660248fef17e6dad7b.jpg',
-  Neutral: 'https://i.pinimg.com/736x/03/98/cb/0398cbb268528dbad35799ad602128be.jpg',
+  Happiness: 'https://i.pinimg.com/736x/3c/c2/4c/3cc24c1323758ad3ac771422cca85b16.jpg', // Sunny flowers
+  Sadness: 'https://i.pinimg.com/736x/af/a3/93/afa3935151761fafefe50b3b4cf4e22b.jpg', // Rainy window
+  Anger: 'https://i.pinimg.com/736x/1b/c2/54/1bc254fc6ac4e9bc66c906b8e222c9e5.jpg', // Stormy clouds
+  Surprise: 'https://i.pinimg.com/736x/b5/08/2c/b5082cfb446b91fde276b51692f61f8b.jpg', // Colorful balloons
+  Disgust: 'https://i.pinimg.com/736x/e3/ed/87/e3ed8733e6a1ff0400821e2c829a11bd.jpg', // Dark forest
+  Fear: 'https://i.pinimg.com/736x/86/b6/59/86b659584ccc8d660248fef17e6dad7b.jpg', // Misty forest
+  Neutral: 'https://i.pinimg.com/736x/03/98/cb/0398cbb268528dbad35799ad602128be.jpg', // Calm lake
 };
-
-const instructionBackground = 'https://i.pinimg.com/736x/e7/eb/1e/e7eb1e0579cc962ca5dfec740ae68f5e.jpg';
 
 const WORD_CATEGORIES = {
   easy: {
@@ -251,7 +250,7 @@ const WORD_HINTS = {
 };
 
 
-const WordWizard = ({ emotion = 'Neutral' }) => {
+const WordWizard = () => {
   const navigate = useNavigate();
   const [word, setWord] = useState('');
   const [guessedLetters, setGuessedLetters] = useState(new Set());
@@ -260,15 +259,6 @@ const WordWizard = ({ emotion = 'Neutral' }) => {
   const [score, setScore] = useState(0);
   const [category, setCategory] = useState('animals');
   const [error, setError] = useState(null);
-  const [showInstructions, setShowInstructions] = useState(true);
-  const [currentLevel, setCurrentLevel] = useState('easy');
-  const [wordsCompleted, setWordsCompleted] = useState({
-    easy: 0,
-    medium: 0,
-    hard: 0
-  });
-  const [currentWordIndex, setCurrentWordIndex] = useState(0);
-  const [currentSet, setCurrentSet] = useState(1);
 
   const categories = useMemo(() => WORD_CATEGORIES[currentLevel], [currentLevel]);
 
@@ -338,210 +328,178 @@ const WordWizard = ({ emotion = 'Neutral' }) => {
     }
   };
 
-  const resetGame = async () => {
+  const handleBack = async () => {
     try {
-      const response = await fetch('http://localhost:8000/clear_emotions_log', {
+      const userId = localStorage.getItem('childUserId') || 'defaultUser';
+      const game = 'WordWizard';
+  
+      const response = await fetch('http://localhost:5000/api/emotion-summary', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: userId, game }) // Backend expects 'username'
       });
-      const data = await response.json();
-      if (data.status !== 'success') {
-        setError('Failed to clear emotions log: ' + data.message);
-      } else {
-        setError(null);
+  
+      const result = await response.json();
+      console.log('Emotion summary response:', result);
+  
+      if (!result.success && result.error) {
+        console.error('Failed to store emotion summary:', result.error);
       }
+  
+      navigate('/child/games');
     } catch (error) {
       setError('Error clearing emotions log: ' + error.message);
     }
 
     setScore(0);
     setCategory('animals');
-    setCurrentLevel('easy');
-    setWordsCompleted({
-      easy: 0,
-      medium: 0,
-      hard: 0
-    });
-    setCurrentWordIndex(0);
-    setCurrentSet(1);
     setGuessedLetters(new Set());
     setRemainingLives(6);
     setGameStatus('playing');
     selectNewWord();
   };
 
-  const handleBack = () => navigate('/child/games');
+  // Initialize game and clear emotions log on mount
+  useEffect(() => {
+    const initializeGame = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/clear_emotions_log', {
+          method: 'POST',
+        });
+        const data = await response.json();
+        if (data.status !== 'success') {
+          setError('Failed to clear emotions log: ' + data.message);
+        } else {
+          setError(null);
+        }
+      } catch (error) {
+        setError('Error clearing emotions log: ' + error.message);
+      }
+    };
 
-  const backgroundImage = showInstructions ? instructionBackground : (emotionBackgrounds[emotion] || emotionBackgrounds.Neutral);
+    initializeGame();
 
-  const renderInstructions = () => (
-    <motion.div 
-      className="instructions" 
-      initial={{ opacity: 0, y: 20 }} 
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-    >
-      <h1>Welcome to Word Wizard!</h1>
-      <p>🎯 Guess the hidden word letter by letter.</p>
-      <p>❤️ You have 6 lives. Each wrong guess costs a life.</p>
-      <p>🏆 Complete 3 words in each level to progress!</p>
-      <p>📚 Progress through Easy, Medium, and Hard levels.</p>
-      <motion.button
-        className="start-btn"
-        onClick={() => setShowInstructions(false)}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        Start Game
-      </motion.button>
-    </motion.div>
-  );
+    // Cleanup: Signal external emotion detection system to stop logging (if applicable)
+    return () => {
+      // Note: Add logic here to stop external emotion detection (e.g., webcam) if controlled by the app.
+      // Currently, we assume the external system stops when the game unmounts.
+      console.log('WordWizard unmounted: Emotion logging should stop.');
+    };
+  }, []);
 
-  const renderGame = () => (
-    <div className="game-section">
-      <motion.button
-        className="back-button"
-        onClick={handleBack}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        ← Back to Games
-      </motion.button>
+  const handleBack = () => {
+    navigate('/child/games');
+  };
 
-      <div className="game-header-container">
-  <h1 className="game-title">Word Wizard</h1>
-  <div className="level-status">
-    Level: {currentLevel.toUpperCase()} ({wordsCompleted[currentLevel]}/3)
-    <div className="set-status">Set: {currentSet}</div>
-  </div>
-  <div className="score-lives">
-    <span className="score-text">Score: {score}</span>
-    <span className="lives-text">Lives: {'❤️'.repeat(remainingLives)}</span>
-  </div>
-</div>
-
-
-      {error && (
-        <motion.p 
-          className="error-message" 
-          initial={{ opacity: 0 }} 
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
-          {error}
-        </motion.p>
-      )}
-
-      <div className="category-selector">
-        {Object.keys(categories).map((cat) => (
-          <motion.button
-            key={cat}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className={`category-btn ${category === cat ? 'active' : ''}`}
-            onClick={() => {
-              setCategory(cat);
-              setCurrentWordIndex(0);
-              setCurrentSet(1);
-              setWordsCompleted(prev => ({
-                ...prev,
-                [currentLevel]: 0
-              }));
-            }}
-          >
-            {cat.charAt(0).toUpperCase() + cat.slice(1)}
-          </motion.button>
-        ))}
-      </div>
-
-      <div className="word-display">
-        {word.split('').map((letter, index) => (
-          <motion.div
-            key={index}
-            className="letter-box"
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            {guessedLetters.has(letter) ? letter : '_'}
-          </motion.div>
-        ))}
-      </div>
-
-      <div className="hint-container">
-        <motion.p 
-          className="hint-text"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-        >
-          Hint: {WORD_HINTS[currentLevel]?.[category]?.[word] || "No hint available"}
-        </motion.p>
-      </div>
-
-
-      <div className="keyboard">
-        {Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').map((letter) => (
-          <motion.button
-            key={letter}
-            className={`letter-btn ${guessedLetters.has(letter) ? 'used' : ''}`}
-            onClick={() => handleLetterGuess(letter)}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            disabled={guessedLetters.has(letter) || gameStatus !== 'playing'}
-          >
-            {letter}
-          </motion.button>
-        ))}
-      </div>
-
-      {gameStatus !== 'playing' && (
-        <motion.div 
-          className="game-over" 
-          initial={{ scale: 0 }} 
-          animate={{ scale: 1 }}
-          exit={{ scale: 0 }}
-        >
-          <h2>{gameStatus === 'won' ? '🎉 Congratulations!' : '😢 Game Over'}</h2>
-          <p>The word was: {word}</p>
-          <motion.button
-            className="play-again-btn"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={selectNewWord}
-          >
-            Next Word
-          </motion.button>
-          <motion.button
-            className="reset-btn"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={resetGame}
-          >
-            Start Over
-          </motion.button>
-        </motion.div>
-      )}
-    </div>
-  );
+  const backgroundImage = emotionBackgrounds[emotion] || emotionBackgrounds.Neutral;
 
   return (
-    <div
-      className="word-wizard"
-      style={{
+    <div 
+      className="word-wizard" 
+      style={{ 
         backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        minHeight: '100vh',
-        transition: 'background-image 0.5s ease-in-out',
       }}
     >
       <div className="content-wrapper">
-        <AnimatePresence mode="wait">
-          {showInstructions ? renderInstructions() : renderGame()}
-        </AnimatePresence>
+        <motion.button
+          className="back-button"
+          onClick={handleBack}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          ← Back to Games
+        </motion.button>
+
+        <div className="game-header">
+          <h1>Word Wizard</h1>
+          <div className="game-info">
+            <span className="score">Score: {score}</span>
+            <span className="lives">Lives: {'❤️'.repeat(remainingLives)}</span>
+            <motion.button
+              className="reset-btn"
+              onClick={resetGame}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Reset
+            </motion.button>
+          </div>
+        </div>
+
+        {error && (
+          <motion.p
+            className="error-message"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            {error}
+          </motion.p>
+        )}
+
+        <div className="category-selector">
+          {Object.keys(categories).map(cat => (
+            <motion.button
+              key={cat}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className={`category-btn ${category === cat ? 'active' : ''}`}
+              onClick={() => setCategory(cat)}
+            >
+              {cat.charAt(0).toUpperCase() + cat.slice(1)}
+            </motion.button>
+          ))}
+        </div>
+
+        <div className="word-display">
+          {word.split('').map((letter, index) => (
+            <motion.div
+              key={index}
+              className="letter-box"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              {guessedLetters.has(letter) ? letter : '_'}
+            </motion.div>
+          ))}
+        </div>
+
+        <div className="keyboard">
+          {Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').map((letter) => (
+            <motion.button
+              key={letter}
+              className={`letter-btn ${guessedLetters.has(letter) ? 'used' : ''}`}
+              onClick={() => handleLetterGuess(letter)}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              disabled={guessedLetters.has(letter) || gameStatus !== 'playing'}
+            >
+              {letter}
+            </motion.button>
+          ))}
+        </div>
+
+        {gameStatus !== 'playing' && (
+          <motion.div
+            className="game-over"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+          >
+            <h2>{gameStatus === 'won' ? '🎉 Congratulations!' : '😢 Game Over'}</h2>
+            <p>The word was: {word}</p>
+            <motion.button
+              className="play-again-btn"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={selectNewWord}
+            >
+              Play Again
+            </motion.button>
+          </motion.div>
+        )}
       </div>
     </div>
   );
-};
-
+};  
 export default WordWizard;
+  

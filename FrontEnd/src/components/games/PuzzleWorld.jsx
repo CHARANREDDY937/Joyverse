@@ -60,15 +60,30 @@ const LEVELS = {
   }))
 };
 
-const PuzzleWorld = () => {
+// Emotion-to-background mapping (same as WordWizard, MathSafari, and MemoryMatch)
+const emotionBackgrounds = {
+  Happiness: 'https://i.pinimg.com/736x/3c/c2/4c/3cc24c1323758ad3ac771422cca85b16.jpg',
+  Sadness: 'https://i.pinimg.com/736x/af/a3/93/afa3935151761fafefe50b3b4cf4e22b.jpg',
+  Anger: 'https://i.pinimg.com/736x/1b/c2/54/1bc254fc6ac4e9bc66c906b8e222c9e5.jpg',
+  Surprise: 'https://i.pinimg.com/736x/b5/08/2c/b5082cfb446b91fde276b51692f61f8b.jpg',
+  Disgust: 'https://i.pinimg.com/736x/e3/ed/87/e3ed8733e6a1ff0400821e2c829a11bd.jpg',
+  Fear: 'https://i.pinimg.com/736x/86/b6/59/86b659584ccc8d660248fef17e6dad7b.jpg',
+  Neutral: 'https://i.pinimg.com/736x/03/98/cb/0398cbb268528dbad35799ad602128be.jpg',
+};
+
+const PuzzleWorld = ({ emotion = 'Neutral' }) => {
   const navigate = useNavigate();
   const [currentLevel, setCurrentLevel] = useState('easy');
   const [imageIndex, setImageIndex] = useState(0);
   const [tiles, setTiles] = useState([]);
   const [moves, setMoves] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+<<<<<<< HEAD
   const [gameStarted, setGameStarted] = useState(false);
   const [bestMoves, setBestMoves] = useState({});
+=======
+  const [error, setError] = useState(null);
+>>>>>>> 8216ad021b5d9a845c7c10a11df776a6c738c03b
 
   const currentPuzzle = LEVELS[currentLevel][imageIndex];
 
@@ -107,14 +122,89 @@ const PuzzleWorld = () => {
   }, [currentPuzzle.size]);
 
   const initializePuzzle = useCallback(() => {
+<<<<<<< HEAD
     setTiles(shuffleTiles());
+=======
+    // Clear emotions logs on backend
+    fetch('http://localhost:8000/clear_emotions_log', {
+      method: 'POST',
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status !== 'success') {
+          setError('Failed to clear emotions and percentages logs: ' + data.message);
+        } else {
+          setError(null);
+        }
+      })
+      .catch(error => {
+        setError('Error clearing emotions and percentages logs: ' + error.message);
+      });
+
+    const shuffleTiles = (tiles) => {
+      const shuffled = [...tiles];
+      let currentIndex = shuffled.length;
+
+      while (currentIndex !== 0) {
+        const randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+
+        [shuffled[currentIndex], shuffled[randomIndex]] = 
+          [shuffled[randomIndex], shuffled[currentIndex]];
+      }
+
+      if (!isSolvable(shuffled)) {
+        const lastIndex = shuffled.length - 1;
+        if (lastIndex >= 2) {
+          [shuffled[lastIndex - 1], shuffled[lastIndex - 2]] = 
+            [shuffled[lastIndex - 2], shuffled[lastIndex - 1]];
+        }
+      }
+
+      return shuffled;
+    };
+
+    const size = currentPuzzle.size * currentPuzzle.size;
+    const newTiles = Array.from({ length: size - 1 }, (_, i) => i + 1);
+    newTiles.push(null); // Empty tile
+    
+    const shuffledTiles = shuffleTiles(newTiles);
+    setTiles(shuffledTiles);
+>>>>>>> 8216ad021b5d9a845c7c10a11df776a6c738c03b
     setMoves(0);
     setIsComplete(false);
   }, [shuffleTiles]);
 
+  // Append emotion percentages
+  const appendEmotionPercentages = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/append_emotion_percentages', {
+        method: 'POST',
+      });
+      const data = await response.json();
+      if (data.status !== 'success') {
+        setError('Failed to append emotion percentages: ' + data.message);
+      } else {
+        setError(null);
+      }
+    } catch (error) {
+      setError('Error appending emotion percentages: ' + error.message);
+    }
+  };
+
   useEffect(() => {
     initializePuzzle();
+<<<<<<< HEAD
   }, [initializePuzzle, currentPuzzle]);
+=======
+
+    // Cleanup: Append percentages when component unmounts
+    return () => {
+      appendEmotionPercentages();
+      console.log('PuzzleWorld unmounted: Emotion percentages appended.');
+    };
+  }, [currentPuzzle, initializePuzzle]);
+>>>>>>> 8216ad021b5d9a845c7c10a11df776a6c738c03b
 
   const handleTileClick = (index) => {
     if (isComplete) return;
@@ -133,7 +223,11 @@ const PuzzleWorld = () => {
       setTiles(newTiles);
       setMoves(moves + 1);
 
+<<<<<<< HEAD
       const completed = newTiles.every((tile, index) => 
+=======
+      const isComplete = newTiles.every((tile, index) => 
+>>>>>>> 8216ad021b5d9a845c7c10a11df776a6c738c03b
         tile === null ? index === newTiles.length - 1 : tile === index + 1
       );
 
@@ -148,6 +242,7 @@ const PuzzleWorld = () => {
     }
   };
 
+<<<<<<< HEAD
   const handleNextPuzzle = () => {
     if (imageIndex < LEVELS[currentLevel].length - 1) {
       setImageIndex(prev => prev + 1);
@@ -171,6 +266,27 @@ const PuzzleWorld = () => {
       <motion.button 
         className="back-button" 
         onClick={() => navigate('/child/games')} 
+=======
+  const handleBack = async () => {
+    // Append percentages before navigating away
+    await appendEmotionPercentages();
+    navigate('/child/games');
+  };
+
+  const backgroundImage = emotionBackgrounds[emotion] || emotionBackgrounds.Neutral;
+
+  return (
+    <div 
+      className="puzzle-world" 
+      style={{ 
+        backgroundImage: `url(${backgroundImage})`,
+      }}
+    >
+      <motion.button
+        className="back-button"
+        onClick={handleBack}
+        whileHover={{ scale: 1.05 }}
+>>>>>>> 8216ad021b5d9a845c7c10a11df776a6c738c03b
         whileTap={{ scale: 0.95 }}
       >
         ← Back to Games
@@ -178,6 +294,7 @@ const PuzzleWorld = () => {
 
       <div className="instructions-content">
         <h1>Puzzle World</h1>
+<<<<<<< HEAD
         <h2>How to Play</h2>
         <div className="instruction-steps">
           <div className="step">
@@ -196,6 +313,18 @@ const PuzzleWorld = () => {
             <div className="step-number">4</div>
             <p>Progress through Easy, Medium, and Hard levels</p>
           </div>
+=======
+        <div className="game-info">
+          <span className="moves">Moves: {moves}</span>
+          <motion.button
+            className="reset-btn"
+            onClick={initializePuzzle}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Reset Puzzle
+          </motion.button>
+>>>>>>> 8216ad021b5d9a845c7c10a11df776a6c738c03b
         </div>
         <motion.button 
           className="start-game-btn" 
@@ -208,6 +337,7 @@ const PuzzleWorld = () => {
     </div>
   );
 
+<<<<<<< HEAD
   const GameScreen = () => (
     <div className="puzzle-world">
       <motion.button 
@@ -232,6 +362,30 @@ const PuzzleWorld = () => {
         >
           Reset Puzzle
         </motion.button>
+=======
+      {error && (
+        <motion.p
+          className="error-message"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          {error}
+        </motion.p>
+      )}
+
+      <div className="puzzle-selector">
+        {PUZZLES.map(puzzle => (
+          <motion.button
+            key={puzzle.id}
+            className={`puzzle-btn ${currentPuzzle.id === puzzle.id ? 'active' : ''}`}
+            onClick={() => setCurrentPuzzle(puzzle)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {puzzle.name}
+          </motion.button>
+        ))}
+>>>>>>> 8216ad021b5d9a845c7c10a11df776a6c738c03b
       </div>
 
       <motion.div 
