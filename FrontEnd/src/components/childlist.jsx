@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import './childlist.css';
+import { useChildContext } from '../context/ChildContext';
 
 const ChildList = () => {
   const navigate = useNavigate();
+  const { setChildData } = useChildContext();
   const [users, setUsers] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -34,8 +36,27 @@ const ChildList = () => {
     user.username.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleViewProgress = (userId) => {
-    navigate(`/child-progress/${userId}`);
+  const handleViewProgress = async (user) => {
+    try {
+      // Update the URL to match the backend route exactly
+      const response = await fetch(`http://localhost:5000/api/users/progress/${user.username}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch progress data');
+      }
+      const progressData = await response.json();
+      
+      setChildData({
+        username: user.username,
+        progressData,
+        name: user.name
+      });
+
+      // Update the navigation path to match your route configuration
+      navigate('/child-progress/' + user.username);
+    } catch (error) {
+      console.error('Error fetching progress:', error);
+      setError('Failed to load child progress. Please try again.');
+    }
   };
 
   if (loading) {
@@ -106,15 +127,20 @@ const ChildList = () => {
                 </div>
               </div>
 
-              <motion.button
-                className="view-progress-btn"
-                onClick={() => handleViewProgress(user._id)}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <i className="fas fa-chart-line"></i>
-                View Progress
-              </motion.button>
+              <div className="button-group">
+                <motion.button
+                  className="view-progress-btn"
+                  onClick={() => handleViewProgress(user)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <i className="fas fa-chart-line"></i>
+                  View Progress
+                </motion.button>
+                
+                
+                  
+              </div>
             </motion.div>
           ))}
         </div>

@@ -14,12 +14,15 @@
     "@mediapipe/drawing_utils": "^0.3.1675466124",
     "@mediapipe/face_mesh": "^0.4.1633559619",
     "axios": "^1.8.4",
+    "chart.js": "^4.4.9",
     "emotionlandmarksnode": "^1.0.2",
     "framer-motion": "^12.9.2",
     "react": "^18.3.1",
+    "react-chartjs-2": "^5.3.0",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.5.2",
     "react-webcam": "^7.2.0",
+    "recharts": "^2.15.3",
     "tone": "^15.0.4"
   },
   "devDependencies": {

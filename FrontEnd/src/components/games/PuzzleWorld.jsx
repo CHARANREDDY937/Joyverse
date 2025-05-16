@@ -73,17 +73,15 @@ const emotionBackgrounds = {
 
 const PuzzleWorld = ({ emotion = 'Neutral' }) => {
   const navigate = useNavigate();
+  // Add new states
+  const [gameStarted, setGameStarted] = useState(false);
+  const [bestMoves, setBestMoves] = useState({});
   const [currentLevel, setCurrentLevel] = useState('easy');
   const [imageIndex, setImageIndex] = useState(0);
   const [tiles, setTiles] = useState([]);
   const [moves, setMoves] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
-<<<<<<< HEAD
-  const [gameStarted, setGameStarted] = useState(false);
-  const [bestMoves, setBestMoves] = useState({});
-=======
   const [error, setError] = useState(null);
->>>>>>> 8216ad021b5d9a845c7c10a11df776a6c738c03b
 
   const currentPuzzle = LEVELS[currentLevel][imageIndex];
 
@@ -122,9 +120,6 @@ const PuzzleWorld = ({ emotion = 'Neutral' }) => {
   }, [currentPuzzle.size]);
 
   const initializePuzzle = useCallback(() => {
-<<<<<<< HEAD
-    setTiles(shuffleTiles());
-=======
     // Clear emotions logs on backend
     fetch('http://localhost:8000/clear_emotions_log', {
       method: 'POST',
@@ -170,7 +165,6 @@ const PuzzleWorld = ({ emotion = 'Neutral' }) => {
     
     const shuffledTiles = shuffleTiles(newTiles);
     setTiles(shuffledTiles);
->>>>>>> 8216ad021b5d9a845c7c10a11df776a6c738c03b
     setMoves(0);
     setIsComplete(false);
   }, [shuffleTiles]);
@@ -194,9 +188,6 @@ const PuzzleWorld = ({ emotion = 'Neutral' }) => {
 
   useEffect(() => {
     initializePuzzle();
-<<<<<<< HEAD
-  }, [initializePuzzle, currentPuzzle]);
-=======
 
     // Cleanup: Append percentages when component unmounts
     return () => {
@@ -204,8 +195,8 @@ const PuzzleWorld = ({ emotion = 'Neutral' }) => {
       console.log('PuzzleWorld unmounted: Emotion percentages appended.');
     };
   }, [currentPuzzle, initializePuzzle]);
->>>>>>> 8216ad021b5d9a845c7c10a11df776a6c738c03b
 
+  // Fix the completed variable in handleTileClick
   const handleTileClick = (index) => {
     if (isComplete) return;
 
@@ -223,15 +214,12 @@ const PuzzleWorld = ({ emotion = 'Neutral' }) => {
       setTiles(newTiles);
       setMoves(moves + 1);
 
-<<<<<<< HEAD
-      const completed = newTiles.every((tile, index) => 
-=======
-      const isComplete = newTiles.every((tile, index) => 
->>>>>>> 8216ad021b5d9a845c7c10a11df776a6c738c03b
+      // Fix: Change 'completed' to 'isComplete'
+      const isPuzzleComplete = newTiles.every((tile, index) => 
         tile === null ? index === newTiles.length - 1 : tile === index + 1
       );
 
-      if (completed) {
+      if (isPuzzleComplete) {
         const puzzleKey = `${currentLevel}-${imageIndex}`;
         const currentBest = bestMoves[puzzleKey] || Infinity;
         if (moves < currentBest) {
@@ -242,40 +230,41 @@ const PuzzleWorld = ({ emotion = 'Neutral' }) => {
     }
   };
 
-<<<<<<< HEAD
+  // Add handleNextPuzzle function
   const handleNextPuzzle = () => {
-    if (imageIndex < LEVELS[currentLevel].length - 1) {
-      setImageIndex(prev => prev + 1);
-    } else {
-      if (currentLevel === 'easy') {
-        setCurrentLevel('medium');
-      } else if (currentLevel === 'medium') {
-        setCurrentLevel('hard');
-      } else {
-        alert('🎉 Congratulations! You completed all levels!');
-        setGameStarted(false);
-        return;
-      }
-      setImageIndex(0);
+    const nextIndex = (imageIndex + 1) % LEVELS[currentLevel].length;
+    if (nextIndex === 0) {
+      // Move to next difficulty level
+      const levels = ['easy', 'medium', 'hard'];
+      const currentLevelIndex = levels.indexOf(currentLevel);
+      const nextLevel = levels[(currentLevelIndex + 1) % levels.length];
+      setCurrentLevel(nextLevel);
     }
+    setImageIndex(nextIndex);
+    setIsComplete(false);
     initializePuzzle();
   };
 
+  // Create InstructionsScreen component
   const InstructionsScreen = () => (
     <div className="instructions-screen">
-      <motion.button 
-        className="back-button" 
-        onClick={() => navigate('/child/games')} 
-=======
-  const handleBack = async () => {
-    // Append percentages before navigating away
-    await appendEmotionPercentages();
-    navigate('/child/games');
-  };
+      <h1>Welcome to Puzzle World!</h1>
+      <p>🧩 Slide the tiles to complete the picture</p>
+      <p>🎯 Try to solve it in as few moves as possible</p>
+      <p>⭐ Progress through Easy, Medium, and Hard levels</p>
+      <motion.button
+        className="start-game-btn"
+        onClick={() => setGameStarted(true)}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        Start Playing
+      </motion.button>
+    </div>
+  );
 
-  const backgroundImage = emotionBackgrounds[emotion] || emotionBackgrounds.Neutral;
-
-  return (
+  // Create GameScreen component
+  const GameScreen = () => (
     <div 
       className="puzzle-world" 
       style={{ 
@@ -286,34 +275,13 @@ const PuzzleWorld = ({ emotion = 'Neutral' }) => {
         className="back-button"
         onClick={handleBack}
         whileHover={{ scale: 1.05 }}
->>>>>>> 8216ad021b5d9a845c7c10a11df776a6c738c03b
         whileTap={{ scale: 0.95 }}
       >
         ← Back to Games
       </motion.button>
 
-      <div className="instructions-content">
+      <div className="game-content">
         <h1>Puzzle World</h1>
-<<<<<<< HEAD
-        <h2>How to Play</h2>
-        <div className="instruction-steps">
-          <div className="step">
-            <div className="step-number">1</div>
-            <p>Click tiles next to the empty space to move them</p>
-          </div>
-          <div className="step">
-            <div className="step-number">2</div>
-            <p>Arrange tiles in numerical order</p>
-          </div>
-          <div className="step">
-            <div className="step-number">3</div>
-            <p>Complete the image puzzle</p>
-          </div>
-          <div className="step">
-            <div className="step-number">4</div>
-            <p>Progress through Easy, Medium, and Hard levels</p>
-          </div>
-=======
         <div className="game-info">
           <span className="moves">Moves: {moves}</span>
           <motion.button
@@ -324,116 +292,65 @@ const PuzzleWorld = ({ emotion = 'Neutral' }) => {
           >
             Reset Puzzle
           </motion.button>
->>>>>>> 8216ad021b5d9a845c7c10a11df776a6c738c03b
         </div>
-        <motion.button 
-          className="start-game-btn" 
-          onClick={() => setGameStarted(true)} 
-          whileTap={{ scale: 0.95 }}
-        >
-          Start Playing
-        </motion.button>
-      </div>
-    </div>
-  );
 
-<<<<<<< HEAD
-  const GameScreen = () => (
-    <div className="puzzle-world">
-      <motion.button 
-        className="back-button" 
-        onClick={() => setGameStarted(false)} 
-        whileTap={{ scale: 0.95 }}
-      >
-        ← Back to Instructions
-      </motion.button>
+        {error && (
+          <motion.p
+            className="error-message"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            {error}
+          </motion.p>
+        )}
 
-      <div className="game-header">
-        <h1>Puzzle World - {currentLevel.charAt(0).toUpperCase() + currentLevel.slice(1)} Level</h1>
-        <div className="game-stats">
-          <p>Puzzle: {imageIndex + 1}/{LEVELS[currentLevel].length}</p>
-          <p>Moves: {moves}</p>
-          <p>Best: {bestMoves[`${currentLevel}-${imageIndex}`] || '-'}</p>
-        </div>
-        <motion.button 
-          className="reset-btn" 
-          onClick={initializePuzzle} 
-          whileTap={{ scale: 0.95 }}
-        >
-          Reset Puzzle
-        </motion.button>
-=======
-      {error && (
-        <motion.p
-          className="error-message"
+        <motion.div 
+          className="puzzle-container"
+          style={{ '--grid-size': currentPuzzle.size }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
-          {error}
-        </motion.p>
-      )}
-
-      <div className="puzzle-selector">
-        {PUZZLES.map(puzzle => (
-          <motion.button
-            key={puzzle.id}
-            className={`puzzle-btn ${currentPuzzle.id === puzzle.id ? 'active' : ''}`}
-            onClick={() => setCurrentPuzzle(puzzle)}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            {puzzle.name}
-          </motion.button>
-        ))}
->>>>>>> 8216ad021b5d9a845c7c10a11df776a6c738c03b
-      </div>
-
-      <motion.div 
-        className="puzzle-container"
-        style={{ '--grid-size': currentPuzzle.size }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-      >
-        {tiles.map((tile, index) => (
-          <motion.div
-            key={index}
-            className={`puzzle-tile ${!tile ? 'empty' : ''}`}
-            onClick={() => handleTileClick(index)}
-            whileHover={{ scale: tile ? 1.05 : 1 }}
-            whileTap={{ scale: tile ? 0.95 : 1 }}
-            style={{
-              backgroundImage: tile ? `url(${currentPuzzle.image})` : 'none',
-              backgroundSize: `${currentPuzzle.size * 100}%`,
-              backgroundPosition: tile
-                ? `${((tile - 1) % currentPuzzle.size) * -100}% ${Math.floor((tile - 1) / currentPuzzle.size) * -100}%`
-                : 'center'
-            }}
-          >
-            {tile}
-          </motion.div>
-        ))}
-      </motion.div>
-
-      {isComplete && (
-        <motion.div 
-          className="victory-screen" 
-          initial={{ scale: 0 }} 
-          animate={{ scale: 1 }}
-        >
-          <h2>🎉 Great job!</h2>
-          <p>You solved the puzzle in {moves} moves!</p>
-          {bestMoves[`${currentLevel}-${imageIndex}`] === moves && (
-            <p>🏆 New Best Score!</p>
-          )}
-          <motion.button
-            className="next-puzzle-btn"
-            onClick={handleNextPuzzle}
-            whileTap={{ scale: 0.95 }}
-          >
-            Next Puzzle
-          </motion.button>
+          {tiles.map((tile, index) => (
+            <motion.div
+              key={index}
+              className={`puzzle-tile ${!tile ? 'empty' : ''}`}
+              onClick={() => handleTileClick(index)}
+              whileHover={{ scale: tile ? 1.05 : 1 }}
+              whileTap={{ scale: tile ? 0.95 : 1 }}
+              style={{
+                backgroundImage: tile ? `url(${currentPuzzle.image})` : 'none',
+                backgroundSize: `${currentPuzzle.size * 100}%`,
+                backgroundPosition: tile
+                  ? `${((tile - 1) % currentPuzzle.size) * -100}% ${Math.floor((tile - 1) / currentPuzzle.size) * -100}%`
+                  : 'center'
+              }}
+            >
+              {tile}
+            </motion.div>
+          ))}
         </motion.div>
-      )}
+
+        {isComplete && (
+          <motion.div 
+            className="victory-screen" 
+            initial={{ scale: 0 }} 
+            animate={{ scale: 1 }}
+          >
+            <h2>🎉 Great job!</h2>
+            <p>You solved the puzzle in {moves} moves!</p>
+            {bestMoves[`${currentLevel}-${imageIndex}`] === moves && (
+              <p>🏆 New Best Score!</p>
+            )}
+            <motion.button
+              className="next-puzzle-btn"
+              onClick={handleNextPuzzle}
+              whileTap={{ scale: 0.95 }}
+            >
+              Next Puzzle
+            </motion.button>
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 

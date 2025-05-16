@@ -1,10 +1,13 @@
 import React, { createContext, useContext, useState } from 'react';
 
-// Create the context for child data
 const ChildContext = createContext();
 
 export const ChildProvider = ({ children }) => {
-  const [childData, setChildData] = useState(null); // Default null state
+  const [childData, setChildData] = useState({
+    username: null,
+    name: null,
+    progressData: null
+  });
 
   return (
     <ChildContext.Provider value={{ childData, setChildData }}>
@@ -13,11 +16,4 @@ export const ChildProvider = ({ children }) => {
   );
 };
 
-// Custom hook to use the context
-export const useChildContext = () => {
-  const context = useContext(ChildContext);
-  if (!context) {
-    throw new Error('useChildContext must be used within a ChildProvider');
-  }
-  return context;
-};
+export const useChildContext = () => useContext(ChildContext);

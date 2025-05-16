@@ -250,6 +250,8 @@
 // }
 
 // export default App;
+// Add this import at the top with other imports
+import ChildProgress from './components/ChildProgress';
 
 import React, { useState, useRef, useEffect } from 'react';
 import {
@@ -277,14 +279,15 @@ import ReadingRace from './components/games/ReadingRace';
 import ArtStudio from './components/games/ArtStudio';
 import MusicMaker from './components/games/MusicMaker';
 import ChildList from './components/childlist';
+
 import { FaceMesh } from '@mediapipe/face_mesh';
 import { Camera } from '@mediapipe/camera_utils';
+import { ChildProvider } from './context/ChildContext';
 
-import { ChildProvider } from './context/ChildContext'; // ✅ Ensure this path is correct
 import './App.css';
 
 // -----------------------------
-// BackgroundEmotionDetector Component
+// BackgroundEmotionDetector
 // -----------------------------
 const BackgroundEmotionDetector = ({ isActive, onEmotionDetected }) => {
   const videoRef = useRef(null);
@@ -461,15 +464,17 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/SelectionPage" element={<SelectionPage />} />
           <Route path="/child" element={<ChildLogin />} />
-
           <Route path="/therapist" element={<TherapistLogin />} />
           <Route path="/child-info" element={<ChildInfoPage />} />
           <Route path="/childlist" element={<ChildList />} />
 
+          {/* Game Dashboard */}
           <Route
             path="/child/games"
             element={<GameWrapper><GamesDashboard /></GameWrapper>}
           />
+
+          {/* Game Routes */}
           <Route
             path="/child/games/word-wizard"
             element={<GameWrapper><WordWizard /></GameWrapper>}
@@ -510,6 +515,7 @@ function App() {
             path="/child/games/music"
             element={<GameWrapper><MusicMaker /></GameWrapper>}
           />
+          <Route path="/child-progress/:username" element={<ChildProgress />} />
         </Routes>
       </Router>
     </ChildProvider>
