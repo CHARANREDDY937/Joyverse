@@ -201,12 +201,12 @@ emotion_labels = {
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = FaceEmotionTransformer(num_classes=7).to(device)
 try:
-    print("🔄 Loading model...")
+    print("Loading model...")
     model.load_state_dict(torch.load("Emotion_model2000.pth", map_location=device))
     model.eval()
-    print("✅ Model loaded successfully.")
+    print("Model loaded successfully.")
 except Exception as e:
-    print("❌ Model load failed:", e)
+    print("Model load failed:", e)
 
 # Lifespan context
 @asynccontextmanager

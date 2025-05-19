@@ -20,7 +20,7 @@
     }
   ],
   "installCommand": "pip install -r requirements.txt && cd Frontend && npm install",
-  "buildCommand": "cd Frontend && npm run build",
+  "buildCommand": "cd Frontend && npm run dev",
   "framework": "vite",
   "outputDirectory": "Frontend/dist"
 }

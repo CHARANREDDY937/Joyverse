@@ -42,7 +42,7 @@ const WORD_HINTS = {
       'PIG': 'Pink farm animal that says oink',
       'RAT': 'Small rodent with a long tail',
       'HEN': 'Female chicken that lays eggs',
-      'FOX': 'Clever orange wild animal',
+      'FOX': 'Cunning orange wild animal',
       'BAT': 'Flying mammal active at night',
       'ANT': 'Tiny insect that works in colonies',
       'BEE': 'Makes honey and can sting',

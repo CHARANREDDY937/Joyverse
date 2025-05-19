@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "start": "concurrently \"cd ..\\FrontEnd && npm run dev\" \"cd ..\\fastapi && python main.py\" \"cd ..\\backend && node server.js\"",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint ."
