@@ -238,8 +238,13 @@ const FASTAPI_URL = isProduction
   : 'http://127.0.0.1:8000';
 
 // Middlewares
+// app.use(cors({
+//   origin: ['https://<frontend>.onrender.com', 'http://localhost:5173'],
+//   methods: ['GET', 'POST', 'PUT', 'DELETE'],
+//   allowedHeaders: ['Content-Type'],
+// }));
 app.use(cors({
-  origin: ['https://<frontend>.onrender.com', 'http://localhost:5173'],
+  origin: ['https://joyverse.onrender.com', 'http://localhost:5173'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type'],
 }));
