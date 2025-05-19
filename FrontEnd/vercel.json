@@ -1,0 +1,26 @@
+{
+  "builds": [
+    {
+      "src": "Frontend/dist/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "backend/fastapi/**/*.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/backend/fastapi"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/Frontend/dist/$1"
+    }
+  ],
+  "installCommand": "pip install -r requirements.txt && cd Frontend && npm install",
+  "buildCommand": "cd Frontend && npm run build",
+  "framework": "vite",
+  "outputDirectory": "Frontend/dist"
+}
