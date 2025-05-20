@@ -474,19 +474,19 @@ async def predict_emotion(data: LandmarkData):
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
 # API endpoint: Game Next Level
-@app.post("/api/game/next-level")
-async def next_level(data: EmotionData):
-    try:
-        emotion = data.emotion
-        level_increment = 1 if emotion in ["Happiness", "Surprise"] else 0
-        print(f"Received emotion for next level: {emotion}, Increment: {level_increment}")
-        return {
-            "status": "success",
-            "emotion": emotion,
-            "level_increment": level_increment
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Next level computation failed: {str(e)}")
+# @app.post("/api/game/next-level")
+# async def next_level(data: EmotionData):
+#     try:
+#         emotion = data.emotion
+#         level_increment = 1 if emotion in ["Happiness", "Surprise"] else 0
+#         print(f"Received emotion for next level: {emotion}, Increment: {level_increment}")
+#         return {
+#             "status": "success",
+#             "emotion": emotion,
+#             "level_increment": level_increment
+#         }
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Next level computation failed: {str(e)}")
 
 # Run the server
 if __name__ == "__main__":
