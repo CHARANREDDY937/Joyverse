@@ -249,6 +249,22 @@ const WORD_HINTS = {
   }
 };
 
+const getLevelFromEmotion = (emotion) => {
+  switch (emotion) {
+    case 'Happiness':
+    case 'Surprise':
+      return 'easy';
+    case 'Neutral':
+    case 'Fear':
+      return 'medium';
+    case 'Sadness':
+    case 'Anger':
+    case 'Disgust':
+      return 'hard';
+    default:
+      return 'medium'; // Fallback to medium if emotion is unrecognized
+  }
+};
 
 const WordWizard = ({ emotion = 'Neutral' }) => {
   const navigate = useNavigate();
@@ -260,16 +276,18 @@ const WordWizard = ({ emotion = 'Neutral' }) => {
   const [category, setCategory] = useState('animals');
   const [error, setError] = useState(null);
   const [showInstructions, setShowInstructions] = useState(true);
-  const [currentLevel, setCurrentLevel] = useState('easy');
-  const [wordsCompleted, setWordsCompleted] = useState({
-    easy: 0,
-    medium: 0,
-    hard: 0
-  });
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [currentSet, setCurrentSet] = useState(1);
+  const [wordsCompleted, setWordsCompleted] = useState(0);
+  const [currentLevel, setCurrentLevel] = useState('easy');
+  const [pendingLevel, setPendingLevel] = useState(getLevelFromEmotion(emotion));
 
   const categories = useMemo(() => WORD_CATEGORIES[currentLevel], [currentLevel]);
+
+  // Update pendingLevel when emotion changes
+  useEffect(() => {
+    setPendingLevel(getLevelFromEmotion(emotion));
+  }, [emotion]);
 
   const selectNewWord = useCallback(() => {
     const words = categories[category];
@@ -302,30 +320,17 @@ const WordWizard = ({ emotion = 'Neutral' }) => {
   const handleGameWin = () => {
     setGameStatus('won');
     setScore((score) => score + 100);
-    
-    setWordsCompleted(prev => ({
-      ...prev,
-      [currentLevel]: prev[currentLevel] + 1
-    }));
+    setWordsCompleted((prev) => prev + 1);
 
-    if (wordsCompleted[currentLevel] + 1 >= 3) {
-      if (currentLevel === 'easy') {
-        setCurrentLevel('medium');
-        setCurrentWordIndex(0);
-      } else if (currentLevel === 'medium') {
-        setCurrentLevel('hard');
-        setCurrentWordIndex(0);
-      } else if (currentLevel === 'hard') {
-        setCurrentLevel('easy');
-        setCurrentSet(prev => prev + 1);
-        setCurrentWordIndex(0);
-      }
-      setWordsCompleted(prev => ({
-        ...prev,
-        [currentLevel]: 0
-      }));
+    // Apply pending level after winning
+    setCurrentLevel(pendingLevel);
+
+    if (wordsCompleted + 1 >= 3) {
+      setCurrentSet((prev) => prev + 1);
+      setCurrentWordIndex(0);
+      setWordsCompleted(0);
     } else {
-      setCurrentWordIndex(prev => prev + 1);
+      setCurrentWordIndex((prev) => prev + 1);
     }
   };
 
@@ -334,6 +339,8 @@ const WordWizard = ({ emotion = 'Neutral' }) => {
       handleGameWin();
     } else if (remainingLives <= 1) {
       setGameStatus('lost');
+      // Apply pending level after losing
+      setCurrentLevel(pendingLevel);
     }
   };
 
@@ -354,17 +361,13 @@ const WordWizard = ({ emotion = 'Neutral' }) => {
 
     setScore(0);
     setCategory('animals');
-    setCurrentLevel('easy');
-    setWordsCompleted({
-      easy: 0,
-      medium: 0,
-      hard: 0
-    });
+    setWordsCompleted(0);
     setCurrentWordIndex(0);
     setCurrentSet(1);
     setGuessedLetters(new Set());
     setRemainingLives(6);
     setGameStatus('playing');
+    setCurrentLevel(pendingLevel);
     selectNewWord();
   };
 
@@ -382,8 +385,8 @@ const WordWizard = ({ emotion = 'Neutral' }) => {
       <h1>Welcome to Word Wizard!</h1>
       <p>🎯 Guess the hidden word letter by letter.</p>
       <p>❤ You have 6 lives. Each wrong guess costs a life.</p>
-      <p>🏆 Complete 3 words in each level to progress!</p>
-      <p>📚 Progress through Easy, Medium, and Hard levels.</p>
+      <p>🏆 Complete 3 words to progress to the next set!</p>
+      <p>📚 The game adjusts based on your emotions after each word.</p>
       <motion.button
         className="start-btn"
         onClick={() => setShowInstructions(false)}
@@ -407,17 +410,16 @@ const WordWizard = ({ emotion = 'Neutral' }) => {
       </motion.button>
 
       <div className="game-header-container">
-  <h1 className="game-title">Word Wizard</h1>
-  <div className="level-status">
-    Level: {currentLevel.toUpperCase()} ({wordsCompleted[currentLevel]}/3)
-    <div className="set-status">Set: {currentSet}</div>
-  </div>
-  <div className="score-lives">
-    <span className="score-text">Score: {score}</span>
-    <span className="lives-text">Lives: {'❤'.repeat(remainingLives)}</span>
-  </div>
-</div>
-
+        <h1 className="game-title">Word Wizard</h1>
+        <div className="level-status">
+          Level: {currentLevel.toUpperCase()} ({wordsCompleted}/3)
+          <div className="set-status">Set: {currentSet}</div>
+        </div>
+        <div className="score-lives">
+          <span className="score-text">Score: {score}</span>
+          <span className="lives-text">Lives: {'❤'.repeat(remainingLives)}</span>
+        </div>
+      </div>
 
       {error && (
         <motion.p 
@@ -441,10 +443,7 @@ const WordWizard = ({ emotion = 'Neutral' }) => {
               setCategory(cat);
               setCurrentWordIndex(0);
               setCurrentSet(1);
-              setWordsCompleted(prev => ({
-                ...prev,
-                [currentLevel]: 0
-              }));
+              setWordsCompleted(0);
             }}
           >
             {cat.charAt(0).toUpperCase() + cat.slice(1)}
@@ -476,7 +475,6 @@ const WordWizard = ({ emotion = 'Neutral' }) => {
           Hint: {WORD_HINTS[currentLevel]?.[category]?.[word] || "No hint available"}
         </motion.p>
       </div>
-
 
       <div className="keyboard">
         {Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').map((letter) => (
