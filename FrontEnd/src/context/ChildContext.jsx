@@ -1,8 +1,13 @@
 import React, { createContext, useContext, useState } from 'react';
 
-const ChildContext = createContext();
+export const ChildContext = createContext();
 
 export const ChildProvider = ({ children }) => {
+  const [user, setUser] = useState({
+    username: null,
+    role: null,
+    isAuthenticated: false
+  });
   const [childData, setChildData] = useState({
     username: null,
     name: null,
@@ -10,7 +15,7 @@ export const ChildProvider = ({ children }) => {
   });
 
   return (
-    <ChildContext.Provider value={{ childData, setChildData }}>
+    <ChildContext.Provider value={{ user, setUser, childData, setChildData }}>
       {children}
     </ChildContext.Provider>
   );

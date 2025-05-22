@@ -1,16 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import './childlist.css';
 import { useChildContext } from '../context/ChildContext';
+import './childlist.css';
 
 const ChildList = () => {
   const navigate = useNavigate();
-  const { setChildData } = useChildContext();
+  const { setChildData, user } = useChildContext();
   const [users, setUsers] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Protect route
+  useEffect(() => {
+    if (!user || user.role !== 'therapist') {
+      navigate('/therapist');
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -38,21 +45,19 @@ const ChildList = () => {
 
   const handleViewProgress = async (user) => {
     try {
-      // Update the URL to match the backend route exactly
       const response = await fetch(`http://localhost:5000/api/users/progress/${user.username}`);
       if (!response.ok) {
         throw new Error('Failed to fetch progress data');
       }
       const progressData = await response.json();
-      
+
       setChildData({
         username: user.username,
         progressData,
         name: user.name
       });
 
-      // Update the navigation path to match your route configuration
-      navigate('/child-progress/' + user.username);
+      navigate(`/child-progress/${user.username}`);
     } catch (error) {
       console.error('Error fetching progress:', error);
       setError('Failed to load child progress. Please try again.');
@@ -108,7 +113,7 @@ const ChildList = () => {
             >
               <div className="user-header">
                 <div className="user-avatar">
-                  <i className="fas fa-user-circle"></i>
+                  <span>👤</span>
                 </div>
                 <div className="user-info">
                   <h3>{user.name}</h3>
@@ -118,11 +123,11 @@ const ChildList = () => {
 
               <div className="user-stats">
                 <div className="stat">
-                  <i className="fas fa-gamepad"></i>
+                  <span>🎮</span>
                   <span>Games: {user.gamesPlayed || 0}</span>
                 </div>
                 <div className="stat">
-                  <i className="fas fa-star"></i>
+                  <span>⭐</span>
                   <span>Score: {user.totalScore || 0}</span>
                 </div>
               </div>
@@ -134,12 +139,9 @@ const ChildList = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <i className="fas fa-chart-line"></i>
+                  <span>📈</span>
                   View Progress
                 </motion.button>
-                
-                
-                  
               </div>
             </motion.div>
           ))}

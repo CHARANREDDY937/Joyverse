@@ -251,16 +251,16 @@ const WORD_HINTS = {
 
 const getLevelFromEmotion = (emotion) => {
   switch (emotion) {
-    case 'Happiness':
     case 'Surprise':
-      return 'easy';
+    case 'Sadness':
+    return 'easy';
     case 'Neutral':
     case 'Fear':
-      return 'medium';
-    case 'Sadness':
+    return 'medium';
     case 'Anger':
+    case 'Happiness':
     case 'Disgust':
-      return 'hard';
+    return 'hard';
     default:
       return 'medium'; // Fallback to medium if emotion is unrecognized
   }
