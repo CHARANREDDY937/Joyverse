@@ -1,6 +1,5 @@
-// export default App;
 import ChildProgress from './components/ChildProgress';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
@@ -28,7 +27,7 @@ import MusicMaker from './components/games/MusicMaker';
 import ChildList from './components/childlist';
 import { FaceMesh } from '@mediapipe/face_mesh';
 import { Camera } from '@mediapipe/camera_utils';
-import { ChildProvider } from './context/ChildContext';
+import { ChildProvider, ChildContext } from './context/ChildContext';
 import './App.css';
 
 // Define API base URLs based on environment
@@ -39,6 +38,20 @@ const FASTAPI_BASE_URL = isProduction
 const NODE_BASE_URL = isProduction
   ? 'https://backend-brmn.onrender.com'
   : 'http://localhost:5000'; // Local Node.js port
+
+// Map route paths to game names
+const gameRouteToName = {
+  '/child/games/word-wizard': 'WordWizard',
+  '/child/games/hangman': 'Hangman',
+  '/child/games/math-safari': 'MathSafari',
+  '/child/games/memory': 'MemoryMatch',
+  '/child/games/spelling': 'SpellingBee',
+  '/child/games/science': 'ScienceQuest',
+  '/child/games/puzzle': 'PuzzleWorld',
+  '/child/games/reading': 'ReadingRace',
+  '/child/games/art': 'ArtStudio',
+  '/child/games/music': 'MusicMaker',
+};
 
 // -----------------------------
 // BackgroundEmotionDetector
@@ -170,6 +183,8 @@ const HomePage = () => {
 const GameWrapper = ({ children }) => {
   const location = useLocation();
   const [emotion, setEmotion] = useState(null);
+  const { user } = useContext(ChildContext);
+  const previousPathRef = useRef(null);
 
   const isGameRoute =
     location.pathname.startsWith('/child/games/') &&
@@ -191,6 +206,59 @@ const GameWrapper = ({ children }) => {
         console.error('❌ Error calling next-level API:', err);
       });
   };
+
+  // Retry logic for emotion summary request
+  const saveEmotionSummary = async (username, game, retries = 3, delay = 1000) => {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        console.log(`Attempt ${attempt} to save emotion summary for ${game}`);
+        const response = await fetch(`${NODE_BASE_URL}/api/emotion-summary`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, game }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log('✅ Emotion summary saved:', data);
+        return data;
+      } catch (err) {
+        console.error(`❌ Attempt ${attempt} failed:`, err.message);
+        if (attempt < retries) {
+          console.log(`Retrying in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        } else {
+          console.error('❌ All retries failed for emotion summary:', err);
+        }
+      }
+    }
+  };
+
+  // Detect navigation back to /child/games
+  useEffect(() => {
+    const currentPath = location.pathname;
+    const previousPath = previousPathRef.current;
+
+    console.log('Navigation:', { currentPath, previousPath, user });
+
+    if (
+      currentPath === '/child/games' &&
+      previousPath &&
+      previousPath.startsWith('/child/games/') &&
+      previousPath !== '/child/games' &&
+      user?.username
+    ) {
+      const game = gameRouteToName[previousPath] || 'UnknownGame';
+      console.log(`Navigated back to games dashboard, saving emotion summary for ${game}`);
+
+      saveEmotionSummary(user.username, game);
+    }
+
+    previousPathRef.current = currentPath;
+  }, [location.pathname, user]);
 
   return (
     <>

@@ -1,6 +1,5 @@
 import os
-import collections
-from datetime import datetime
+import logging
 from typing import List
 import numpy as np
 import torch
@@ -9,6 +8,10 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
+
+# Setup logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 # Define the Transformer Model
 class FaceEmotionTransformer(nn.Module):
@@ -48,31 +51,36 @@ emotion_labels = {
     6: "Neutral",
 }
 
-# Setup device and model (lazy-loaded)
+# Setup device and model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = None
-MODEL_PATH = "fastapi/Emotion_model2000.pth"
+MODEL_PATH = "Emotion_model2000.pth"  # Ensure this file exists in the correct directory
 
 def load_model():
     global model
-    if model is None:
-        try:
-            print("Loading model...")
-            model = FaceEmotionTransformer(num_classes=7).to(device)
-            model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
-            model.eval()
-            model = torch.quantization.quantize_dynamic(model, {nn.Linear}, dtype=torch.qint8)
-            print("Model loaded successfully.")
-        except Exception as e:
-            print(f"Model load failed: {e}")
-            raise e
+    if not os.path.exists(MODEL_PATH):
+        logger.error(f"Model file not found at {MODEL_PATH}")
+        raise FileNotFoundError(f"Model file not found at {MODEL_PATH}")
+    
+    try:
+        logger.info("Loading model...")
+        model = FaceEmotionTransformer(num_classes=7).to(device)
+        model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
+        model.eval()
+        logger.info("Model loaded successfully.")
+    except Exception as e:
+        logger.error(f"Model load failed: {str(e)}", exc_info=True)
+        raise e
     return model
 
-# Lifespan context
+# Lifespan context: Load model at startup
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Startup: Load the model
+    load_model()
     yield
-    print("🚪 Server is shutting down...")
+    # Shutdown
+    logger.info("Server is shutting down...")
 
 # Initialize FastAPI app
 app = FastAPI(title="Joyverse FastAPI Backend", lifespan=lifespan)
@@ -100,36 +108,59 @@ async def health():
 @app.post("/predict")
 async def predict_emotion(data: LandmarkData):
     try:
-        landmarks = np.array(data.landmarks).astype(np.float32)
+        # Log received data for debugging
+        logger.info("Received predict request with landmarks shape: %s", np.array(data.landmarks).shape)
+        
+        # Validate input data
+        if not data.landmarks:
+            logger.error("Landmarks data is empty")
+            raise HTTPException(status_code=400, detail="Landmarks data is empty")
+        
+        landmarks = np.array(data.landmarks, dtype=np.float32)
         if landmarks.shape != (468, 3):
+            logger.error("Invalid landmarks shape: %s, expected (468, 3)", landmarks.shape)
             raise HTTPException(status_code=400, detail=f"Invalid landmarks shape: {landmarks.shape}, expected (468, 3)")
+        
+        # Ensure model is loaded
+        if model is None:
+            logger.error("Model not loaded")
+            raise HTTPException(status_code=500, detail="Model not loaded")
 
-        model = load_model()
-        input_tensor = torch.tensor(landmarks).unsqueeze(0).to(device)
+        # Prepare input tensor
+        input_tensor = torch.tensor(landmarks, dtype=torch.float32).unsqueeze(0).to(device)
+        logger.info("Input tensor shape: %s", input_tensor.shape)
+        
+        # Make prediction
         with torch.no_grad():
             output = model(input_tensor)
+            logger.info("Model output shape: %s", output.shape)
             _, predicted = torch.max(output, 1)
             emotion = emotion_labels.get(predicted.item(), "Unknown")
 
-        print(f"Predicted emotion: {emotion}")
+        logger.info("Predicted emotion: %s", emotion)
         return {"predicted_emotion": emotion}
+    except ValueError as ve:
+        logger.error("Input validation error: %s", str(ve), exc_info=True)
+        raise HTTPException(status_code=400, detail=f"Invalid input data: {str(ve)}")
     except Exception as e:
+        logger.error("Prediction failed: %s", str(e), exc_info=True)
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
 # API endpoint: Game Next Level
-# @app.post("/api/game/next-level")
-# async def next_level(data: EmotionData):
-#     try:
-#         emotion = data.emotion
-#         level_increment = 1 if emotion in ["Happiness", "Surprise"] else 0
-#         print(f"Received emotion for next level: {emotion}, Increment: {level_increment}")
-#         return {
-#             "status": "success",
-#             "emotion": emotion,
-#             "level_increment": level_increment
-#         }
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Next level computation failed: {str(e)}")
+@app.post("/api/game/next-level")
+async def next_level(data: EmotionData):
+    try:
+        emotion = data.emotion
+        level_increment = 1 if emotion in ["Happiness", "Surprise"] else 0
+        logger.info("Received emotion for next level: %s, Increment: %d", emotion, level_increment)
+        return {
+            "status": "success",
+            "emotion": emotion,
+            "level_increment": level_increment
+        }
+    except Exception as e:
+        logger.error("Next level computation failed: %s", str(e), exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Next level computation failed: {str(e)}")
 
 # Run the server
 if __name__ == "__main__":

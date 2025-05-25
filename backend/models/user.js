@@ -1,4 +1,3 @@
-// models/user.js
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
@@ -9,12 +8,13 @@ const userSchema = new mongoose.Schema({
     {
       game: { type: String, required: true },
       emotion: {
-        Sadness: { type: Number, required: true },
-        Happiness: { type: Number, required: true },
-        Fear: { type: Number, required: true },
-        Disgust: { type: Number, required: true },
-        Surprise: { type: Number, required: true },
-        Neutral: { type: Number, required: true }
+        Anger: { type: Number, default: 0 },
+        Sadness: { type: Number, default: 0 },
+        Happiness: { type: Number, default: 0 },
+        Fear: { type: Number, default: 0 },
+        Disgust: { type: Number, default: 0 },
+        Surprise: { type: Number, default: 0 },
+        Neutral: { type: Number, default: 0 }
       },
       timestamp: { type: Date, required: true }
     }

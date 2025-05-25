@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { ChildContext } from '../context/ChildContext';
 import './ChildLogin.css';
 
 const ChildLogin = () => {
   const navigate = useNavigate();
+  const { setUser } = useContext(ChildContext); // Added to update context
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     username: '',
@@ -50,6 +52,12 @@ const ChildLogin = () => {
       const data = await response.json();
 
       if (response.ok) {
+        // Update context with user data
+        setUser({
+          username: formData.username,
+          role: 'child',
+          isAuthenticated: true
+        });
         // Store username in localStorage
         localStorage.setItem('childUserId', formData.username);
         navigate('/child/games');
