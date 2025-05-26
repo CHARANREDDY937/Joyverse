@@ -121,7 +121,7 @@ const ChildList = () => {
                 </div>
               </div>
 
-              <div className="user-stats">
+              {/* <div className="user-stats">
                 <div className="stat">
                   <span>🎮</span>
                   <span>Games: {user.gamesPlayed || 0}</span>
@@ -130,7 +130,7 @@ const ChildList = () => {
                   <span>⭐</span>
                   <span>Score: {user.totalScore || 0}</span>
                 </div>
-              </div>
+              </div> */}
 
               <div className="button-group">
                 <motion.button
