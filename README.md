@@ -1,5 +1,5 @@
 # JoyVerse 🎮✨  
-*Adaptive Emotional Learning Games for Dyslexic Children*
+*Adaptive Learning Games for Dyslexic Children*
 
 ![Project Banner](./model/Screenshot%202025-05-26%20182540.png)
 
@@ -9,25 +9,26 @@
 
 All optimizations are guided by therapeutic protocols to ensure safe and beneficial experiences aligned with expert recommendations.
 
+![Therepist page](./model/Screenshot%202025-05-26%20184247.png)
+
 ---
 
 ## 🧠 How It Works
 
 1. **Video Feed Analysis**: Real-time emotion detection using facial expression recognition.
-2. **Transformer Models**: State-of-the-art temporal sentiment modeling for contextual understanding.
+2. **Transformer Models**:sentiment modeling for contextual understanding.
 3. **Dynamic Game Adaptation**: Game mechanics evolve based on detected emotions.
 4. **Therapist Integration**: Every adaptive change is constrained within therapist-defined parameters.
 
-![Therepist page](./model/Screenshot%202025-05-26%20184247.png)
 
 ---
 
 ## 🎮 Key Features
 
-- 🎭 **Emotion Recognition**:facial expression analysis powered by mediapipe-facemesh transformer.
-- 🧩 **Adaptive Gameplay**: Personalized game experiences based on emotional feedback.
-- 🧠 **Therapy-Aligned Customization**: Therapists set the bounds for adaptation strategies.
-- 📊 **Insight Dashboard** : Visual emotional tracking and performance reports.
-- ⚡ **Real-Time Performance**: Optimized for low-latency interactions.
+- 1. **Emotion Recognition**:facial expression analysis powered by mediapipe-facemesh transformer.
+- 2. **Adaptive Gameplay**: Personalized game experiences based on emotional feedback.
+- 3. **Therapy-Aligned Customization**: Therapists set the bounds for adaptation strategies.
+- 4. **Insight Dashboard** : Visual emotional tracking and performance reports.
+- 5. **Real-Time Performance**: Optimized for low-latency interactions.
 
 ---
