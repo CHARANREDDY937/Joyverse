@@ -45,7 +45,7 @@ const ChildProgress = () => {
     }
 
     // Fix the API endpoint URL
-    axios.get(`http://localhost:5000/api/users/progress/${username}`)
+    axios.get(`https://backend-brmn.onrender.com/api/users/progress/${username}`)
       .then(res => {
         console.log('Response received:', res.data);
         setData(res.data);
