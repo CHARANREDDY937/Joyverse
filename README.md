@@ -9,7 +9,7 @@
 
 All optimizations are guided by therapeutic protocols to ensure safe and beneficial experiences aligned with expert recommendations.
 
-![Therepist page](./model/Screenshot%202025-05-26%20184247.png)
+![Therepist page](./model/Screenshot%202025-05-28%20155548.png)
 
 ---
 

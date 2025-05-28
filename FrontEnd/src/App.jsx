@@ -34,7 +34,7 @@ import './App.css';
 const isProduction = process.env.NODE_ENV === 'production';
 const FASTAPI_BASE_URL = isProduction
   ? 'https://api-pmbi.onrender.com'
-  : 'http://localhost:8000'; // Adjust to your local FastAPI port
+  : 'http://localhost:8000'; // local FastAPI port
 const NODE_BASE_URL = isProduction
   ? 'https://backend-brmn.onrender.com'
   : 'http://localhost:5000'; // Local Node.js port
