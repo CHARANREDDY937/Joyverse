@@ -6,13 +6,14 @@ import './ChildLogin.css';
 
 const ChildLogin = () => {
   const navigate = useNavigate();
-  const { setUser } = useContext(ChildContext); // Added to update context
+  const { setUser } = useContext(ChildContext);
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     username: '',
     password: '',
     confirmPassword: '',
-    name: ''
+    name: '',
+    age: ''
   });
   const [error, setError] = useState(null);
 
@@ -39,8 +40,15 @@ const ChildLogin = () => {
         if (formData.password !== formData.confirmPassword) {
           return setError('Passwords do not match');
         }
+
+        const age = parseInt(formData.age);
+        if (isNaN(age) || age > 12) {
+          return setError('Sorry, this app is only for kids aged 12 or below.');
+        }
+
         payload.confirmPassword = formData.confirmPassword;
         payload.name = formData.name;
+        payload.age = formData.age;
       }
 
       const response = await fetch(url, {
@@ -52,13 +60,11 @@ const ChildLogin = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // Update context with user data
         setUser({
           username: formData.username,
           role: 'child',
           isAuthenticated: true
         });
-        // Store username in localStorage
         localStorage.setItem('childUserId', formData.username);
         navigate('/child/games');
       } else {
@@ -154,11 +160,25 @@ const ChildLogin = () => {
                   required
                 />
               </motion.div>
+
+              <motion.div className="form-group" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 }}>
+                <label htmlFor="age">Your Age</label>
+                <input
+                  type="number"
+                  id="age"
+                  name="age"
+                  value={formData.age}
+                  onChange={handleChange}
+                  placeholder="Enter your age"
+                  required
+                  min="1"
+                />
+              </motion.div>
             </>
           )}
 
           <motion.button type="submit" className="submit-button" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            {isLogin ? 'Let\'s Play!' : 'Join Now!'}
+            {isLogin ? "Let's Play!" : "Join Now!"}
           </motion.button>
 
           {error && (

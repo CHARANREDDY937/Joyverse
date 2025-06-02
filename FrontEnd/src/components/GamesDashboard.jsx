@@ -65,18 +65,18 @@ const GamesDashboard = ({ emotion }) => {
 
   const handleGameClick = async (path) => {
     try {
-      console.log('Resuming emotion logging...');
-      const response = await fetch('http://localhost:8000/resume_emotion_logging', {
-        method: 'POST',
-      });
-      const data = await response.json();
-      if (data.status !== 'success') {
-        console.error('Failed to resume emotion logging:', data.message);
-      } else {
-        console.log('Emotion logging resumed');
-      }
+      // console.log('Resuming emotion logging...');
+      // const response = await fetch('http://localhost:8000/resume_emotion_logging', {
+      //   method: 'POST',
+      // });
+      // const data = await response.json();
+      // if (data.status !== 'success') {
+      //   console.error('Failed to resume emotion logging:', data.message);
+      // } else {
+      //   console.log('Emotion logging resumed');
+      // }
     } catch (error) {
-      console.error('Error resuming emotion logging:', error);
+      // console.error('Error resuming emotion logging:', error);
     }
     navigate(path);
   };
