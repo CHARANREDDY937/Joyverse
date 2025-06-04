@@ -204,17 +204,17 @@ const SpellingBee = ({ emotion = 'Neutral' }) => {
   };
 
   const resetGame = async () => {
-    try {
-      const response = await fetch('http://localhost:8000/clear_emotions_log', {
-        method: 'POST',
-      });
-      const data = await response.json();
-      if (data.status !== 'success') {
-        console.error('Failed to clear emotions log:', data.message); // Log to console instead of setting error
-      }
-    } catch (error) {
-      console.error('Error clearing emotions log:', error.message); // Log to console instead of setting error
-    }
+    // try {
+    //   const response = await fetch('http://localhost:8000/clear_emotions_log', {
+    //     method: 'POST',
+    //   });
+    //   const data = await response.json();
+    //   if (data.status !== 'success') {
+    //     console.error('Failed to clear emotions log:', data.message); // Log to console instead of setting error
+    //   }
+    // } catch (error) {
+    //   console.error('Error clearing emotions log:', error.message); // Log to console instead of setting error
+    // }
 
     setCurrentLevelIndex(pendingLevelIndex);
     setCurrentLevelProgress(0);

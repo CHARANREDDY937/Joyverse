@@ -345,19 +345,19 @@ const WordWizard = ({ emotion = 'Neutral' }) => {
   };
 
   const resetGame = async () => {
-    try {
-      const response = await fetch('http://localhost:8000/clear_emotions_log', {
-        method: 'POST',
-      });
-      const data = await response.json();
-      if (data.status !== 'success') {
-        setError('Failed to clear emotions log: ' + data.message);
-      } else {
-        setError(null);
-      }
-    } catch (error) {
-      setError('Error clearing emotions log: ' + error.message);
-    }
+    // try {
+    //   const response = await fetch('http://localhost:8000/clear_emotions_log', {
+    //     method: 'POST',
+    //   });
+    //   const data = await response.json();
+    //   if (data.status !== 'success') {
+    //     setError('Failed to clear emotions log: ' + data.message);
+    //   } else {
+    //     setError(null);
+    //   }
+    // } catch (error) {
+    //   setError('Error clearing emotions log: ' + error.message);
+    // }
 
     setScore(0);
     setCategory('animals');

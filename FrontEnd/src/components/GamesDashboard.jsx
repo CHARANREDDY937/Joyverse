@@ -31,36 +31,36 @@ const GamesDashboard = ({ emotion }) => {
       image: 'https://i.pinimg.com/736x/f0/4d/23/f04d235f6d3af0bb1c27856a259ecdb7.jpg',
       path: '/child/games/spelling'
     },
-    {
-      id: 5,
-      name: 'Science Quest',
-      image: 'https://i.pinimg.com/736x/a3/c6/e0/a3c6e0e88875cadaea284c8524f8d989.jpg',
-      path: '/child/games/science'
-    },
+    // {
+    //   id: 5,
+    //   name: 'Science Quest',
+    //   image: 'https://i.pinimg.com/736x/a3/c6/e0/a3c6e0e88875cadaea284c8524f8d989.jpg',
+    //   path: '/child/games/science'
+    // },
     {
       id: 6,
       name: "Puzzle World",
       image: 'https://i.pinimg.com/736x/88/95/7b/88957bd3d472ea7e417f92a9b24f0cbb.jpg',
       path: '/child/games/puzzle'
     },
-    {
-      id: 7,
-      name: 'Reading Race',
-      image: 'https://i.pinimg.com/736x/99/2e/8c/992e8ca8342db78c99363cb35353670a.jpg',
-      path: '/child/games/reading'
-    },
+    // {
+    //   id: 7,
+    //   name: 'Reading Race',
+    //   image: 'https://i.pinimg.com/736x/99/2e/8c/992e8ca8342db78c99363cb35353670a.jpg',
+    //   path: '/child/games/reading'
+    // },
     {
       id: 8,
       name: 'Art Studio',
       image: 'https://i.pinimg.com/736x/d0/4c/33/d04c33e8307a8a23059030fe1d1ed252.jpg',
       path: '/child/games/art'
-    },
-    {
-      id: 9,
-      name: 'Music Maker',
-      image: 'https://i.pinimg.com/736x/dc/34/58/dc3458a11401388aaf5701b371c05928.jpg',
-      path: '/child/games/music'
     }
+    // {
+    //   id: 9,
+    //   name: 'Music Maker',
+    //   image: 'https://i.pinimg.com/736x/dc/34/58/dc3458a11401388aaf5701b371c05928.jpg',
+    //   path: '/child/games/music'
+    // }
   ];
 
   const handleGameClick = async (path) => {

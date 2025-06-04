@@ -202,15 +202,15 @@ export default function App() {
 
           <Route path="/child/games" element={<GameWrapper><GamesDashboard /></GameWrapper>} />
           <Route path="/child/games/word-wizard" element={<GameWrapper><WordWizard /></GameWrapper>} />
-          <Route path="/child/games/hangman" element={<GameWrapper><Hangman /></GameWrapper>} />
+          {/* <Route path="/child/games/hangman" element={<GameWrapper><Hangman /></GameWrapper>} /> */}
           <Route path="/child/games/math-safari" element={<GameWrapper><MathSafari /></GameWrapper>} />
           <Route path="/child/games/memory" element={<GameWrapper><MemoryMatch /></GameWrapper>} />
           <Route path="/child/games/spelling" element={<GameWrapper><SpellingBee /></GameWrapper>} />
-          <Route path="/child/games/science" element={<GameWrapper><ScienceQuest /></GameWrapper>} />
+          {/* <Route path="/child/games/science" element={<GameWrapper><ScienceQuest /></GameWrapper>} /> */}
           <Route path="/child/games/puzzle" element={<GameWrapper><PuzzleWorld /></GameWrapper>} />
-          <Route path="/child/games/reading" element={<GameWrapper><ReadingRace /></GameWrapper>} />
+          {/* <Route path="/child/games/reading" element={<GameWrapper><ReadingRace /></GameWrapper>} /> */}
           <Route path="/child/games/art" element={<GameWrapper><ArtStudio /></GameWrapper>} />
-          <Route path="/child/games/music" element={<GameWrapper><MusicMaker /></GameWrapper>} />
+          {/* <Route path="/child/games/music" element={<GameWrapper><MusicMaker /></GameWrapper>} /> */}
         </Routes>
       </Router>
     </ChildProvider>
